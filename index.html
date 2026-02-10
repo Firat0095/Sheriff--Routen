@@ -1,49 +1,52 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Standorte & Routen</title>
+
 <style>
   :root{
-    --bg:#0f1115; --panel:#151922; --text:#e8e8e8; --muted:#9aa4b2;
-    --border:#232a36; --accent:#3b82f6;
+    --bg:#0e1014; --panel:#151a22; --border:#232a36; --text:#eaeaea; --muted:#9aa4b2;
   }
-  *{box-sizing:border-box;}
+  *{box-sizing:border-box}
   body{
     margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
     background:var(--bg); color:var(--text);
   }
 
-  /* FETTER SHERIFF-STERN ALS HINTERGRUND (WASSERZEICHEN) */
+  /* GOLDENER, GROßER SHERIFF-STERN MIT GLOW */
   body::before{
-    content:"";
-    position:fixed; inset:0;
-    background-repeat:no-repeat;
-    background-position:center;
-    background-size:min(72vw, 760px);
-    opacity:.10;
-    pointer-events:none;
+    content:""; position:fixed; inset:0; pointer-events:none;
+    background-repeat:no-repeat; background-position:center;
+    background-size:min(120vw, 1200px);
+    opacity:.24;
+    filter:
+      drop-shadow(0 0 26px rgba(255,205,60,.60))
+      drop-shadow(0 0 75px rgba(255,160,0,.35));
     background-image:url('data:image/svg+xml;utf8,\
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">\
-<g fill="none" stroke="white" stroke-width="22">\
-<path d="M450 80l72 128 144-18-28 140 126 72-126 72 28 140-144-18-72 128-72-128-144 18 28-140-126-72 126-72-28-140 144 18z"/>\
-<circle cx="450" cy="450" r="210"/>\
-</g>\
-<g fill="white" opacity=".9">\
-<path d="M340 470l82-82 60 60 124-124 56 56-180 180z"/>\
+<defs>\
+  <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">\
+    <stop offset="0" stop-color="%23FFE59A"/><stop offset="0.55" stop-color="%23FFBF3D"/><stop offset="1" stop-color="%23B87810"/>\
+  </linearGradient>\
+</defs>\
+<g fill="none" stroke="url(%23g)" stroke-width="30">\
+<path d="M450 70l78 140 158-20-30 154 140 78-140 78 30 154-158-20-78 140-78-140-158 20 30-154-140-78 140-78-30-154 158 20z"/>\
+<circle cx="450" cy="450" r="230"/>\
 </g>\
 </svg>');
   }
 
-  .app{display:grid; grid-template-columns:360px 1fr; height:100vh; position:relative;}
+  .app{display:grid; grid-template-columns:360px 1fr; height:100vh;}
   .sidebar{
-    background:rgba(21,25,34,.92);
+    background:rgba(21,26,34,.92);
     backdrop-filter: blur(6px);
     border-right:1px solid var(--border);
     padding:14px; overflow:auto;
   }
   .main{padding:14px; overflow:auto;}
+
   .brand{display:flex; align-items:center; gap:10px; margin:0 0 10px;}
   .brand .mark{
     width:34px; height:34px; border-radius:10px;
@@ -78,11 +81,10 @@
     display:flex; align-items:center; justify-content:space-between; gap:10px;
   }
   .item:hover{filter:brightness(1.08);}
-  .item.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,.25) inset;}
   .item small{color:var(--muted);}
 
   .viewer{
-    background:rgba(21,25,34,.92);
+    background:rgba(21,26,34,.92);
     backdrop-filter: blur(6px);
     border:1px solid var(--border);
     border-radius:16px;
@@ -90,18 +92,18 @@
     min-height:calc(100vh - 28px);
     display:flex; flex-direction:column; gap:10px;
   }
-  .title{display:flex; align-items:baseline; justify-content:space-between; gap:10px;}
-  .title .name{font-size:18px; font-weight:700;}
-  .title .meta{display:none;} /* KEIN DATEIPFAD */
+
+  /* KEIN TITEL ÜBER DEM BILD -> damit nix doppelt ist */
+  .title{display:none;}
 
   img.preview{
-    max-width:100%;
-    height:auto;
+    max-width:100%; height:auto;
     border-radius:14px;
     border:1px solid var(--border);
     background:#0b0e13;
     cursor:zoom-in;
   }
+
   .hint{
     color:var(--muted);
     font-size:14px;
@@ -110,7 +112,7 @@
     border-radius:14px;
   }
 
-  /* Lightbox / Zoom */
+  /* LIGHTBOX / ZOOM (Start: NICHT ÜBERGROSS) */
   .lightbox{
     position:fixed; inset:0; background:rgba(0,0,0,.82);
     display:none; z-index:9999;
@@ -122,7 +124,7 @@
     z-index:10000;
   }
   .lightbox .btn{
-    background:rgba(21,25,34,.92);
+    background:rgba(21,26,34,.92);
     border:1px solid rgba(255,255,255,.12);
     color:white; padding:8px 10px; border-radius:12px;
     cursor:pointer; font-size:12px; user-select:none;
@@ -149,6 +151,7 @@
   }
 </style>
 </head>
+
 <body>
 <div class="app">
   <aside class="sidebar">
@@ -156,16 +159,13 @@
       <div class="mark">⭐</div>
       <h1>Standorte & Routen</h1>
     </div>
-    <input id="search" class="search" placeholder="Suchen…" />
+    <input id="search" class="search" placeholder="Suchen…">
     <div id="groups"></div>
   </aside>
 
   <main class="main">
     <section class="viewer">
-      <div class="title">
-        <div class="name" id="routeName">—</div>
-        <div class="meta" id="routeMeta"></div>
-      </div>
+      <div class="title"></div>
       <div id="content">
         <div class="hint">Links auswählen → rechts öffnet sich das Bild. (Klick aufs Bild = Zoom)</div>
       </div>
@@ -185,23 +185,18 @@
   </div>
   <div class="stage" id="lbStage">
     <div class="stageInner">
-      <img id="lbImg" alt="" />
+      <img id="lbImg" alt="">
     </div>
   </div>
 </div>
 
 <script>
   const icons = {
-    "Weed":"🌿",
-    "Meth":"💉",
-    "Koks":"❄️",
-    "LSD":"🧪",
-    "Waffen":"🔫",
-    "Schwarzmarkt":"🕸️",
-    "Sonstiges":"📍"
+    "Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪",
+    "Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"
   };
 
-  /* ====== DEINE ROUTEN ====== */
+  // ROUTEN: exakt nach deiner GitHub images/ Liste (Meth Detail entfernt)
   const grouped = [
     {"group":"Weed","items":[
       {"name":"Weed Route","file":"images/Weed_Route.png"},
@@ -210,7 +205,6 @@
     ]},
     {"group":"Meth","items":[
       {"name":"Alamo Sea Nähe Stab City Meth-Verarbeiter","file":"images/Alamo_Sea_Naehe_Stab_City_Meth_Verarbeiter.png"},
-      {"name":"Alamo Sea Nähe Stab City Meth-Verarbeiter (Detail)","file":"images/Alamo_Sea_Naehe_Stab_City_Meth_Verarbeiter_Detail.png"},
       {"name":"Methroute (4002)","file":"images/Methroute_4002.png"},
       {"name":"Nordküste Great Ocean Hwy (North Chumash) Meth Verkäufer","file":"images/Nordkueste_Great_Ocean_Hwy_North_Chumash_Meth_Verkaeufer.png"}
     ]},
@@ -229,48 +223,28 @@
       {"name":"El Gordo Drive Schwarzmarkt","file":"images/El_Gordo_Drive_Schwarzmarkt.png"}
     ]}
   ];
-  /* ========================= */
 
-  // --- DUPLIKATE GLOBAL ENTFERNEN (Name + Datei), inkl. Detail-Varianten ---
+  // GLOBAL Duplikate weg (Name + Datei)
   function normKey(s){
-    return (s||"")
-      .toLowerCase()
-      .trim()
+    return (s||"").toLowerCase().trim()
       .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
-      .replace(/\(detail\)/gi,"")       // Detail ignorieren
-      .replace(/[^a-z0-9]+/g," ")       // Sonderzeichen weg
-      .replace(/\s+/g," ")
-      .trim();
+      .replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
   }
-
   const seenNames = new Set();
   const seenFiles = new Set();
-
   const groupedClean = grouped.map(g => {
-    const filtered = (g.items||[]).filter(it => {
+    const items = (g.items||[]).filter(it => {
       const nk = normKey(it.name);
       const fk = (it.file||"").trim().toLowerCase();
       if (seenNames.has(nk) || seenFiles.has(fk)) return false;
-      seenNames.add(nk);
-      if (fk) seenFiles.add(fk);
+      seenNames.add(nk); if (fk) seenFiles.add(fk);
       return true;
     });
-
-    // wenn Basis existiert, Detail weg
-    const baseSet = new Set(filtered.map(x => normKey(x.name)));
-    const noDetail = filtered.filter(x => {
-      const raw = (x.name||"").toLowerCase();
-      if (!raw.includes("detail")) return true;
-      const base = normKey(x.name);
-      return !baseSet.has(base); // falls Basis existiert -> detail raus
-    });
-
-    return {...g, items:noDetail};
+    return {...g, items};
   });
 
   const elGroups = document.getElementById("groups");
   const elSearch = document.getElementById("search");
-  const elRouteName = document.getElementById("routeName");
   const elContent = document.getElementById("content");
 
   const lightbox = document.getElementById("lightbox");
@@ -282,70 +256,56 @@
   const zoomOutBtn = document.getElementById("zoomOut");
   const zoomResetBtn = document.getElementById("zoomReset");
 
-  let active = { group:null, index:-1 };
   let collapsed = new Set();
   let zoom = 1;
 
   function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
 
-  function fitZoom(){
+  // FIT, aber begrenzt: nie größer als 1.0 und mit 90% Padding -> NICHT ÜBERGROSS
+  function fitZoomLimited(){
     const rect = lbStage.getBoundingClientRect();
     const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
-    if(!iw || !ih){ zoom = 1; applyZoom(); return; }
-    const scale = Math.min(rect.width / iw, rect.height / ih);
-    zoom = Math.max(0.05, Math.min(6, scale));
+    if(!iw || !ih){ zoom = 0.9; applyZoom(); return; }
+
+    const scale = Math.min((rect.width * 0.90) / iw, (rect.height * 0.90) / ih);
+    zoom = Math.min(1.0, scale);     // niemals über 100%
     applyZoom();
 
-    requestAnimationFrame(()=>{
-      const sw = iw * zoom, sh = ih * zoom;
-      lbStage.scrollLeft = Math.max(0, (sw - rect.width)/2);
-      lbStage.scrollTop  = Math.max(0, (sh - rect.height)/2);
-    });
+    lbStage.scrollLeft = 0;
+    lbStage.scrollTop  = 0;
   }
 
   function openLightbox(src, title){
     lbImg.src = src;
-    lbImg.alt = title;
     lbTitle.textContent = title;
     lightbox.classList.add("open");
-    zoom = 1;
-    lbImg.onload = () => fitZoom();
+    zoom = 0.95;                     // leicht größer, aber safe
+    lbImg.onload = () => fitZoomLimited();
   }
+
   function closeLightbox(){
     lightbox.classList.remove("open");
     lbImg.src = "";
   }
-  function stepZoom(delta){
-    zoom = Math.max(0.05, Math.min(6, zoom + delta));
+
+  function stepZoom(d){
+    zoom = Math.max(0.2, Math.min(1.6, zoom + d)); // begrenzt, damit nie krank groß
     applyZoom();
   }
 
-  zoomInBtn.addEventListener("click", ()=> stepZoom(0.15));
-  zoomOutBtn.addEventListener("click", ()=> stepZoom(-0.15));
-  zoomResetBtn.addEventListener("click", ()=> fitZoom());
-  lbClose.addEventListener("click", closeLightbox);
-  lightbox.addEventListener("click", (e)=>{ if(e.target === lightbox) closeLightbox(); });
-  document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeLightbox(); });
+  zoomInBtn.onclick  = ()=> stepZoom(0.10);
+  zoomOutBtn.onclick = ()=> stepZoom(-0.10);
+  zoomResetBtn.onclick = ()=> fitZoomLimited();
+  lbClose.onclick = closeLightbox;
 
-  // Strg + Mausrad zoomt in Lightbox
-  lbStage.addEventListener("wheel", (e)=>{
-    if(!lightbox.classList.contains("open")) return;
-    if(!e.ctrlKey) return;
-    e.preventDefault();
-    const dir = e.deltaY > 0 ? -1 : 1;
-    stepZoom(dir * 0.12);
-  }, { passive:false });
+  lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
 
   function openRoute(groupName, idx){
-    active = { group:groupName, index:idx };
-    render(elSearch.value);
-
-    const g = groupedClean.find(x => x.group === groupName);
+    const g = groupedClean.find(x=>x.group===groupName);
     const r = g.items[idx];
 
-    elRouteName.textContent = r.name;
     elContent.innerHTML = "";
-
     const img = document.createElement("img");
     img.className = "preview";
     img.src = r.file;
@@ -354,7 +314,9 @@
     img.onclick = ()=> openLightbox(r.file, r.name);
 
     img.onerror = ()=> {
-      elContent.innerHTML = `<div class="hint">Bild nicht gefunden: <b>${r.file}</b><br/>Prüf bitte den Dateinamen im images/ Ordner.</div>`;
+      elContent.innerHTML =
+        `<div class="hint">❌ Bild nicht gefunden: <b>${r.file}</b><br>
+        Prüfe bitte den Dateinamen im Ordner <b>images/</b>.</div>`;
     };
 
     elContent.appendChild(img);
@@ -375,27 +337,25 @@
       if(filter && items.length===0) return;
 
       const wrap = document.createElement("div");
-      wrap.className = "group";
+      wrap.className="group";
 
       const header = document.createElement("div");
-      header.className = "groupHeader";
-      header.innerHTML = `<div class="left"><span>${icons[g.group] || "📍"}</span><b>${g.group}</b></div><span class="badgeCount">${items.length}</span>`;
+      header.className="groupHeader";
+      header.innerHTML =
+        `<div class="left"><span>${icons[g.group]||"📍"}</span><b>${g.group}</b></div>
+         <span class="badgeCount">${items.length}</span>`;
       header.onclick = ()=> toggleGroup(g.group);
       wrap.appendChild(header);
 
       const body = document.createElement("div");
-      body.className = "groupBody";
+      body.className="groupBody";
       body.style.display = collapsed.has(g.group) ? "none" : "flex";
 
-      items.forEach(r=>{
-        const origIndex = g.items.findIndex(x=>x.file===r.file);
-        const isActive = (active.group===g.group && active.index===origIndex);
-
+      items.forEach((r, i)=>{
         const btn = document.createElement("div");
-        btn.className = "item" + (isActive ? " active" : "");
+        btn.className = "item";
         btn.innerHTML = `<span>${r.name}</span><small>▶</small>`;
-        btn.onclick = ()=> openRoute(g.group, origIndex);
-
+        btn.onclick = ()=> openRoute(g.group, i);
         body.appendChild(btn);
       });
 
@@ -405,13 +365,13 @@
 
     if(!elGroups.children.length){
       const empty = document.createElement("div");
-      empty.className = "hint";
-      empty.textContent = "Keine Treffer.";
+      empty.className="hint";
+      empty.textContent="Keine Treffer.";
       elGroups.appendChild(empty);
     }
   }
 
-  elSearch.addEventListener("input", ()=> render(elSearch.value));
+  elSearch.addEventListener("input", ()=>render(elSearch.value));
   render();
 </script>
 </body>
