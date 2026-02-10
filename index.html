@@ -1,463 +1,206 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Standorte & Routen</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SD – Standorte & Routen</title>
 
 <style>
-  :root{
-    --bg:#0e1014;
-    --panel:#151a22;
-    --border:#232a36;
-    --text:#eaeaea;
-    --muted:#9aa4b2;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background:var(--bg);
-    color:var(--text);
-  }
+:root{
+  --bg:#0e1014;
+  --panel:#151a22;
+  --border:#232a36;
+  --text:#eaeaea;
+  --muted:#9aa4b2;
+  --green:#1f9d55;
+  --red:#b91c1c;
+}
 
-  /* SHERIFF BADGE WASSERZEICHEN (Gold + Glow) */
-  body::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    background-repeat:no-repeat;
-    background-position:center;
-    background-size:min(120vw, 1200px);
-    opacity:.22;
-    filter:
-      drop-shadow(0 0 26px rgba(255,205,60,.55))
-      drop-shadow(0 0 80px rgba(255,150,0,.30));
-    background-image:url('data:image/svg+xml;utf8,\
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">\
-<defs>\
-  <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">\
-    <stop offset="0" stop-color="%23FFE59A"/><stop offset="0.55" stop-color="%23FFBF3D"/><stop offset="1" stop-color="%23B87810"/>\
-  </linearGradient>\
-</defs>\
-<g fill="none" stroke="url(%23g)" stroke-width="30">\
-  <path d="M450 70l78 140 158-20-30 154 140 78-140 78 30 154-158-20-78 140-78-140-158 20 30-154-140-78 140-78-30-154 158 20z"/>\
-  <circle cx="450" cy="450" r="230"/>\
-</g>\
-<g fill="url(%23g)" opacity="0.95">\
-  <rect x="250" y="395" width="400" height="110" rx="55" />\
-</g>\
-<g font-family="Arial" font-weight="800" font-size="78" fill="%23110f0c" opacity="0.9">\
-  <text x="450" y="472" text-anchor="middle" letter-spacing="6">SHERIFF</text>\
-</g>\
-</svg>');
-  }
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,Segoe UI,Roboto,Arial;
+  background:var(--bg);
+  color:var(--text);
+}
 
-  /* SIGNATUR / CREDIT */
-  .credit{
-    position:fixed;
-    right:14px;
-    bottom:12px;
-    z-index:5;
-    padding:8px 10px;
-    border-radius:12px;
-    border:1px solid rgba(255,255,255,.10);
-    background:rgba(15,18,24,.55);
-    backdrop-filter: blur(6px);
-    color:rgba(255,255,255,.85);
-    font-size:12px;
-    user-select:none;
-  }
-  .credit b{font-weight:800;}
+/* SD INFO BAR */
+.sd-bar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px;
+  background:#0f172a;
+  border-bottom:2px solid #facc15;
+}
+.sd-bar b{color:#facc15}
+.sd-bar small{color:#d1d5db}
 
-  .app{
-    display:grid;
-    grid-template-columns:360px 1fr;
-    height:100vh;
-    position:relative;
-    z-index:1;
-  }
-  .sidebar{
-    background:rgba(21,26,34,.92);
-    backdrop-filter: blur(6px);
-    border-right:1px solid var(--border);
-    padding:14px;
-    overflow:auto;
-  }
-  .main{padding:14px; overflow:auto;}
+.sd-bar button{
+  background:#7c2d12;
+  border:none;
+  color:#fff;
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.sd-bar button:hover{filter:brightness(1.1)}
 
-  .brand{display:flex; align-items:center; gap:10px; margin:0 0 10px;}
-  .brand .mark{
-    width:34px; height:34px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    display:grid; place-items:center;
-    background:#0f131b;
-  }
-  .brand h1{font-size:16px; margin:0;}
+.credit{
+  position:fixed;
+  right:12px;
+  bottom:10px;
+  font-size:12px;
+  color:#cbd5f5;
+  opacity:.8;
+}
 
-  .search{
-    width:100%;
-    padding:10px 12px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    background:#0f131b;
-    color:var(--text);
-    outline:none;
-  }
+.app{
+  display:grid;
+  grid-template-columns:360px 1fr;
+  height:calc(100vh - 56px);
+}
 
-  .group{
-    margin-top:12px;
-    border:1px solid var(--border);
-    border-radius:14px;
-    overflow:hidden;
-    background:#0f131b;
-  }
-  .groupHeader{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    padding:10px 12px;
-    cursor:pointer;
-    user-select:none;
-    background:#101522;
-  }
-  .groupHeader .left{display:flex; align-items:center; gap:8px;}
-  .groupHeader b{font-size:13px;}
-  .badgeCount{color:var(--muted); font-size:12px;}
+.sidebar{
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  padding:14px;
+  overflow:auto;
+}
 
-  .groupBody{padding:10px; display:flex; flex-direction:column; gap:8px;}
-  .item{
-    padding:10px 12px;
-    border-radius:12px;
-    border:1px solid var(--border);
-    background:#0b0f17;
-    cursor:pointer;
-    user-select:none;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-  }
-  .item:hover{filter:brightness(1.08);}
-  .item small{color:var(--muted);}
+.main{padding:14px; overflow:auto}
 
-  .viewer{
-    background:rgba(21,26,34,.92);
-    backdrop-filter: blur(6px);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:14px;
-    min-height:calc(100vh - 28px);
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-  }
+.group{margin-bottom:14px}
+.group h3{
+  margin:0 0 6px;
+  font-size:14px;
+  color:#facc15;
+}
 
-  /* Kein Titel über dem Bild -> damit nichts doppelt ist */
-  .title{display:none;}
+.item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-bottom:6px;
+  cursor:pointer;
+}
 
-  img.preview{
-    max-width:100%;
-    height:auto;
-    border-radius:14px;
-    border:1px solid var(--border);
-    background:#0b0e13;
-    cursor:zoom-in;
-  }
+.badge{
+  padding:3px 8px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:700;
+}
 
-  .hint{
-    color:var(--muted);
-    font-size:14px;
-    padding:12px;
-    border:1px dashed var(--border);
-    border-radius:14px;
-  }
+.free{background:var(--green)}
+.used{background:var(--red)}
 
-  /* Lightbox */
-  .lightbox{
-    position:fixed; inset:0;
-    background:rgba(0,0,0,.82);
-    display:none;
-    z-index:9999;
-  }
-  .lightbox.open{display:block;}
-  .lightbox .topbar{
-    position:fixed;
-    top:10px; left:10px; right:10px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    z-index:10000;
-  }
-  .lightbox .btn{
-    background:rgba(21,26,34,.92);
-    border:1px solid rgba(255,255,255,.12);
-    color:white;
-    padding:8px 10px;
-    border-radius:12px;
-    cursor:pointer;
-    font-size:12px;
-    user-select:none;
-  }
-  .lightbox .stage{
-    position:absolute; inset:0;
-    overflow:auto;
-    padding:70px 24px 24px;
-  }
-  .lightbox .stageInner{
-    width:max-content;
-    height:max-content;
-    margin:auto;
-  }
-  .lightbox img{
-    display:block;
-    transform-origin: top left;
-    border-radius:16px;
-    border:1px solid rgba(255,255,255,.12);
-    background:#0b0e13;
-  }
+.viewer{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  min-height:100%;
+}
 
-  @media(max-width:900px){
-    .app{grid-template-columns:1fr;}
-    .sidebar{height:45vh; border-right:none; border-bottom:1px solid var(--border);}
-    .viewer{min-height:unset;}
-    .credit{right:10px; bottom:10px;}
-  }
+img{
+  max-width:100%;
+  border-radius:12px;
+  border:1px solid var(--border);
+}
 </style>
 </head>
 
 <body>
-<div class="credit">Created by <b>Frank White</b></div>
+
+<div class="sd-bar">
+  <div>
+    <b>San Andreas Sheriff Department</b><br>
+    <small>Jede Route max. 1× pro RL-Tag | Nur mit RP-Grund</small>
+  </div>
+  <button onclick="resetAll()">🔄 Tages-Reset</button>
+</div>
 
 <div class="app">
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="mark">⭐</div>
-      <h1>Standorte & Routen</h1>
-    </div>
-    <input id="search" class="search" placeholder="Suchen…" />
-    <div id="groups"></div>
-  </aside>
-
-  <main class="main">
-    <section class="viewer">
-      <div id="content">
-        <div class="hint">Links auswählen → rechts öffnet sich das Bild. (Klick aufs Bild = Zoom)</div>
-      </div>
-    </section>
-  </main>
-</div>
-
-<div class="lightbox" id="lightbox">
-  <div class="topbar">
-    <div class="btn" id="lbTitle">—</div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-      <div class="btn" id="zoomOut">−</div>
-      <div class="btn" id="zoomReset">Fit</div>
-      <div class="btn" id="zoomIn">+</div>
-      <div class="btn" id="lbClose">Schließen (Esc)</div>
-    </div>
-  </div>
-  <div class="stage" id="lbStage">
-    <div class="stageInner">
-      <img id="lbImg" alt="" />
+  <div class="sidebar" id="list"></div>
+  <div class="main">
+    <div class="viewer" id="viewer">
+      <small>Route auswählen</small>
     </div>
   </div>
 </div>
+
+<div class="credit">Created by <b>Frank White</b></div>
 
 <script>
-  const icons = {
-    "Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪",
-    "Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"
-  };
+const routes = [
+  {group:"Waffen", name:"Alamo Sea – Nordufer Waffenteile", file:"images/Alamo_Sea_Nordufer_Waffenteile.png"},
+  {group:"Waffen", name:"Waffenhersteller", file:"images/Waffenhersteller.png"},
+  {group:"Meth", name:"Methroute (4002)", file:"images/Methroute_4002.png"}
+];
 
-  // ✅ Passe NUR diese Liste an, wenn du neue Bilder hochlädst:
-  // (Meth-Detail ist bewusst NICHT drin)
-  const grouped = [
-    {"group":"Weed","items":[
-      {"name":"Weed Route","file":"images/Weed_Route.png"},
-      {"name":"Weed Verarbeiter","file":"images/Weed_Verarbeiter.png"},
-      {"name":"Weed Verkäufer","file":"images/Weed_Verkaeufer.png"}
-    ]},
-    {"group":"Meth","items":[
-      {"name":"Alamo Sea Nähe Stab City Meth-Verarbeiter","file":"images/Alamo_Sea_Naehe_Stab_City_Meth_Verarbeiter.png"},
-      {"name":"Methroute (4002)","file":"images/Methroute_4002.png"},
-      {"name":"Nordküste Great Ocean Hwy (North Chumash) Meth Verkäufer","file":"images/Nordkueste_Great_Ocean_Hwy_North_Chumash_Meth_Verkaeufer.png"}
-    ]},
-    {"group":"Koks","items":[
-      {"name":"Paleto Cove Koksroute","file":"images/Paleto_Cove_Koksroute.png"},
-      {"name":"Route 13 - Senora Freeway Koks Verkäufer","file":"images/Route_13_Senora_Freeway_Koks_Verkaeufer.png"}
-    ]},
-    {"group":"LSD","items":[
-      {"name":"Sandy Shores LSD Spot","file":"images/Sandy_Shores_LSD_Spot.png"}
-    ]},
-    {"group":"Waffen","items":[
-      {"name":"Alamo Sea – Nordufer Waffenteile","file":"images/Alamo_Sea_Nordufer_Waffenteile.png"},
-      {"name":"Waffenhersteller","file":"images/Waffenhersteller.png"}
-    ]},
-    {"group":"Schwarzmarkt","items":[
-      {"name":"El Gordo Drive Schwarzmarkt","file":"images/El_Gordo_Drive_Schwarzmarkt.png"}
-    ]}
-  ];
+const state = JSON.parse(localStorage.getItem("sd_routes") || "{}");
 
-  // HARD DEDUPE: Doppelte Namen ODER gleiche Datei fliegen raus (global + pro Gruppe)
-  function normKey(s){
-    return (s||"").toLowerCase().trim()
-      .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
-      .replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
+function save(){ localStorage.setItem("sd_routes", JSON.stringify(state)); }
+
+function resetAll(){
+  if(!confirm("Alle heutigen Markierungen zurücksetzen?")) return;
+  for(const k in state) delete state[k];
+  save(); render();
+}
+
+function toggle(name){
+  if(state[name]){
+    alert("Diese Route wurde heute bereits gestürmt.");
+    return;
   }
-  const seenGlobal = new Set();
-  const groupedClean = grouped.map(g=>{
-    const localSeen = new Set();
-    const items = (g.items||[]).filter(it=>{
-      const nk = normKey(it.name);
-      const fk = (it.file||"").toLowerCase().trim();
-      const keyA = "n:" + nk;
-      const keyB = "f:" + fk;
-      const keyLocal = nk + "||" + fk;
+  if(confirm(`Route "${name}" wirklich als GESTÜRMT markieren?`)){
+    state[name] = true;
+    save(); render();
+  }
+}
 
-      if(localSeen.has(keyLocal)) return false;
-      localSeen.add(keyLocal);
-
-      if(seenGlobal.has(keyA) || seenGlobal.has(keyB)) return false;
-      seenGlobal.add(keyA); seenGlobal.add(keyB);
-      return true;
-    });
-    return {...g, items};
+function render(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const groups = {};
+  routes.forEach(r=>{
+    groups[r.group] ??= [];
+    groups[r.group].push(r);
   });
 
-  const elGroups = document.getElementById("groups");
-  const elSearch = document.getElementById("search");
-  const elContent = document.getElementById("content");
-
-  const lightbox = document.getElementById("lightbox");
-  const lbImg = document.getElementById("lbImg");
-  const lbTitle = document.getElementById("lbTitle");
-  const lbClose = document.getElementById("lbClose");
-  const lbStage = document.getElementById("lbStage");
-  const zoomInBtn = document.getElementById("zoomIn");
-  const zoomOutBtn = document.getElementById("zoomOut");
-  const zoomResetBtn = document.getElementById("zoomReset");
-
-  let collapsed = new Set();
-  let zoom = 1;
-
-  function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
-
-  // Fit mit Limit: nie über 100% beim Öffnen und immer komplett sichtbar
-  function fitZoomLimited(){
-    const rect = lbStage.getBoundingClientRect();
-    const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
-    if(!iw || !ih){ zoom = 0.95; applyZoom(); return; }
-    const scale = Math.min((rect.width * 0.92) / iw, (rect.height * 0.92) / ih);
-    zoom = Math.min(1.0, scale);
-    applyZoom();
-    lbStage.scrollLeft = 0;
-    lbStage.scrollTop  = 0;
-  }
-
-  function openLightbox(src, title){
-    lbImg.src = src;
-    lbImg.alt = title;
-    lbTitle.textContent = title;
-    lightbox.classList.add("open");
-    zoom = 0.95;
-    lbImg.onload = () => fitZoomLimited();
-  }
-  function closeLightbox(){
-    lightbox.classList.remove("open");
-    lbImg.src = "";
-  }
-  function stepZoom(delta){
-    zoom = Math.max(0.25, Math.min(1.6, zoom + delta)); // nicht zu groß
-    applyZoom();
-  }
-
-  zoomInBtn.onclick = ()=> stepZoom(0.10);
-  zoomOutBtn.onclick = ()=> stepZoom(-0.10);
-  zoomResetBtn.onclick = ()=> fitZoomLimited();
-  lbClose.onclick = closeLightbox;
-
-  lightbox.addEventListener("click", e=>{ if(e.target === lightbox) closeLightbox(); });
-  document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeLightbox(); });
-
-  // ✅ WICHTIG: Slots werden NICHT gelöscht. Wenn Bild fehlt -> Meldung.
-  function openRoute(groupName, idx){
-    const g = groupedClean.find(x=>x.group===groupName);
-    const r = g.items[idx];
-
-    elContent.innerHTML = "";
-    const img = document.createElement("img");
-    img.className = "preview";
-    img.src = r.file;
-    img.alt = r.name;
-    img.title = "Klicken zum Vergrößern";
-    img.onclick = ()=> openLightbox(r.file, r.name);
-
-    img.onerror = ()=>{
-      elContent.innerHTML =
-        `<div class="hint">❌ Bild konnte nicht geladen werden:<br><b>${r.file}</b><br><br>
-        Prüfe: Liegt die Datei wirklich im Ordner <b>images/</b> und heißt exakt so?</div>`;
-    };
-
-    elContent.appendChild(img);
-  }
-
-  function toggleGroup(groupName){
-    if(collapsed.has(groupName)) collapsed.delete(groupName);
-    else collapsed.add(groupName);
-    render(elSearch.value);
-  }
-
-  function render(filterRaw=""){
-    const filter = (filterRaw||"").trim().toLowerCase();
-    elGroups.innerHTML = "";
-
-    groupedClean.forEach(g=>{
-      const items = (g.items||[]).filter(it=>!filter || it.name.toLowerCase().includes(filter));
-      if(filter && items.length === 0) return;
-
-      const wrap = document.createElement("div");
-      wrap.className = "group";
-
-      const header = document.createElement("div");
-      header.className = "groupHeader";
-      header.innerHTML =
-        `<div class="left"><span>${icons[g.group] || "📍"}</span><b>${g.group}</b></div>
-         <span class="badgeCount">${items.length}</span>`;
-      header.onclick = ()=> toggleGroup(g.group);
-      wrap.appendChild(header);
-
-      const body = document.createElement("div");
-      body.className = "groupBody";
-      body.style.display = collapsed.has(g.group) ? "none" : "flex";
-
-      items.forEach((r, i)=>{
-        const btn = document.createElement("div");
-        btn.className = "item";
-        btn.innerHTML = `<span>${r.name}</span><small>▶</small>`;
-        btn.onclick = ()=> openRoute(g.group, i);
-        body.appendChild(btn);
-      });
-
-      wrap.appendChild(body);
-      elGroups.appendChild(wrap);
+  for(const g in groups){
+    list.innerHTML += `<div class="group"><h3>${g}</h3></div>`;
+    groups[g].forEach(r=>{
+      const used = state[r.name];
+      list.innerHTML += `
+        <div class="item" onclick="openRoute('${r.file}','${r.name}')">
+          ${r.name}
+          <span class="badge ${used ? "used" : "free"}">
+            ${used ? "GESTÜRMT" : "FREI"}
+          </span>
+        </div>
+      `;
     });
-
-    if(!elGroups.children.length){
-      const empty = document.createElement("div");
-      empty.className = "hint";
-      empty.textContent = "Keine Treffer.";
-      elGroups.appendChild(empty);
-    }
   }
+}
 
-  elSearch.addEventListener("input", ()=> render(elSearch.value));
-  render();
+function openRoute(file,name){
+  document.getElementById("viewer").innerHTML = `
+    <img src="${file}">
+    <br><br>
+    <button onclick="toggle('${name}')">Als gestürmt markieren</button>
+  `;
+}
+
+render();
 </script>
 </body>
 </html>
