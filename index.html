@@ -21,8 +21,8 @@
     position:fixed; inset:0;
     background-repeat:no-repeat;
     background-position:center;
-    background-size:min(70vw, 720px);
-    opacity:.09; /* stell das höher/niedriger nach Geschmack */
+    background-size:min(72vw, 760px);
+    opacity:.10;
     pointer-events:none;
     background-image:url('data:image/svg+xml;utf8,\
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">\
@@ -92,8 +92,7 @@
   }
   .title{display:flex; align-items:baseline; justify-content:space-between; gap:10px;}
   .title .name{font-size:18px; font-weight:700;}
-  /* WICHTIG: KEIN DATEIPFAD MEHR ANZEIGEN */
-  .title .meta{display:none;}
+  .title .meta{display:none;} /* KEIN DATEIPFAD */
 
   img.preview{
     max-width:100%;
@@ -192,7 +191,6 @@
 </div>
 
 <script>
-  // ICONS pro Kategorie
   const icons = {
     "Weed":"🌿",
     "Meth":"💉",
@@ -203,33 +201,76 @@
     "Sonstiges":"📍"
   };
 
-  // ---- DEINE DATEN (vom Build) ----
-  // Wenn du später neue Bilder/Einträge hast, ersetzen wir nur diesen Block.
-  const grouped = [{"group": "Weed", "items": [{"name": "Weed Route", "file": "images/Weed_Route.png"}, {"name": "Weed Verarbeiter", "file": "images/Weed_Verarbeiter.png"}, {"name": "Weed Verkäufer", "file": "images/Weed_Verkaeufer.png"}]}, {"group": "Meth", "items": [{"name": "Alamo Sea Nähe Stab City Meth-Verarbeiter", "file": "images/Alamo_Sea_Naehe_Stab_City_Meth_Verarbeiter.png"}, {"name": "Alamo Sea Nähe Stab City Meth-Verarbeiter (Detail)", "file": "images/Alamo_Sea_Naehe_Stab_City_Meth_Verarbeiter_Detail.png"}, {"name": "Methroute (4002)", "file": "images/Methroute_4002.png"}, {"name": "Nordküste Great Ocean Hwy (North Chumash) Meth Verkäufer", "file": "images/Nordkueste_Great_Ocean_Hwy_North_Chumash_Meth_Verkaeufer.png"}]}, {"group": "Koks", "items": [{"name": "Paleto Cove Koksroute", "file": "images/Paleto_Cove_Koksroute.png"}, {"name": "Route 13 - Senora Freeway Koks Verkäufer", "file": "images/Route_13_Senora_Freeway_Koks_Verkaeufer.png"}]}, {"group": "LSD", "items": [{"name": "Sandy Shores LSD Spot", "file": "images/Sandy_Shores_LSD_Spot.png"}]}, {"group": "Waffen", "items": [{"name": "Alamo Sea – Nordufer Waffenteile", "file": "images/Alamo_Sea_Nordufer_Waffenteile.png"}, {"name": "Waffenhersteller", "file": "images/Waffenhersteller.png"}]}, {"group": "Schwarzmarkt", "items": [{"name": "El Gordo Drive Schwarzmarkt", "file": "images/El_Gordo_Drive_Schwarzmarkt.png"}]}];
-  // -------------------------------
+  /* ====== DEINE ROUTEN ====== */
+  const grouped = [
+    {"group":"Weed","items":[
+      {"name":"Weed Route","file":"images/Weed_Route.png"},
+      {"name":"Weed Verarbeiter","file":"images/Weed_Verarbeiter.png"},
+      {"name":"Weed Verkäufer","file":"images/Weed_Verkaeufer.png"}
+    ]},
+    {"group":"Meth","items":[
+      {"name":"Alamo Sea Nähe Stab City Meth-Verarbeiter","file":"images/Alamo_Sea_Naehe_Stab_City_Meth_Verarbeiter.png"},
+      {"name":"Alamo Sea Nähe Stab City Meth-Verarbeiter (Detail)","file":"images/Alamo_Sea_Naehe_Stab_City_Meth_Verarbeiter_Detail.png"},
+      {"name":"Methroute (4002)","file":"images/Methroute_4002.png"},
+      {"name":"Nordküste Great Ocean Hwy (North Chumash) Meth Verkäufer","file":"images/Nordkueste_Great_Ocean_Hwy_North_Chumash_Meth_Verkaeufer.png"}
+    ]},
+    {"group":"Koks","items":[
+      {"name":"Paleto Cove Koksroute","file":"images/Paleto_Cove_Koksroute.png"},
+      {"name":"Route 13 - Senora Freeway Koks Verkäufer","file":"images/Route_13_Senora_Freeway_Koks_Verkaeufer.png"}
+    ]},
+    {"group":"LSD","items":[
+      {"name":"Sandy Shores LSD Spot","file":"images/Sandy_Shores_LSD_Spot.png"}
+    ]},
+    {"group":"Waffen","items":[
+      {"name":"Alamo Sea – Nordufer Waffenteile","file":"images/Alamo_Sea_Nordufer_Waffenteile.png"},
+      {"name":"Waffenhersteller","file":"images/Waffenhersteller.png"}
+    ]},
+    {"group":"Schwarzmarkt","items":[
+      {"name":"El Gordo Drive Schwarzmarkt","file":"images/El_Gordo_Drive_Schwarzmarkt.png"}
+    ]}
+  ];
+  /* ========================= */
 
-  // Duplikate automatisch entfernen (Name ODER gleiche Datei)
+  // --- DUPLIKATE GLOBAL ENTFERNEN (Name + Datei), inkl. Detail-Varianten ---
   function normKey(s){
-    return (s||"").trim().toLowerCase()
-      .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss");
+    return (s||"")
+      .toLowerCase()
+      .trim()
+      .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
+      .replace(/\(detail\)/gi,"")       // Detail ignorieren
+      .replace(/[^a-z0-9]+/g," ")       // Sonderzeichen weg
+      .replace(/\s+/g," ")
+      .trim();
   }
-  const groupedClean = grouped.map(g=>{
-    const seenNames = new Set();
-    const seenFiles = new Set();
-    const items = (g.items||[]).filter(it=>{
+
+  const seenNames = new Set();
+  const seenFiles = new Set();
+
+  const groupedClean = grouped.map(g => {
+    const filtered = (g.items||[]).filter(it => {
       const nk = normKey(it.name);
       const fk = (it.file||"").trim().toLowerCase();
-      if(seenNames.has(nk) || seenFiles.has(fk)) return false;
-      seenNames.add(nk); seenFiles.add(fk);
+      if (seenNames.has(nk) || seenFiles.has(fk)) return false;
+      seenNames.add(nk);
+      if (fk) seenFiles.add(fk);
       return true;
     });
-    return {...g, items};
+
+    // wenn Basis existiert, Detail weg
+    const baseSet = new Set(filtered.map(x => normKey(x.name)));
+    const noDetail = filtered.filter(x => {
+      const raw = (x.name||"").toLowerCase();
+      if (!raw.includes("detail")) return true;
+      const base = normKey(x.name);
+      return !baseSet.has(base); // falls Basis existiert -> detail raus
+    });
+
+    return {...g, items:noDetail};
   });
 
   const elGroups = document.getElementById("groups");
   const elSearch = document.getElementById("search");
   const elRouteName = document.getElementById("routeName");
-  const elRouteMeta = document.getElementById("routeMeta");
   const elContent = document.getElementById("content");
 
   const lightbox = document.getElementById("lightbox");
@@ -248,16 +289,17 @@
   function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
 
   function fitZoom(){
-    const stageRect = lbStage.getBoundingClientRect();
+    const rect = lbStage.getBoundingClientRect();
     const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
     if(!iw || !ih){ zoom = 1; applyZoom(); return; }
-    const scale = Math.min(stageRect.width / iw, stageRect.height / ih);
+    const scale = Math.min(rect.width / iw, rect.height / ih);
     zoom = Math.max(0.05, Math.min(6, scale));
     applyZoom();
+
     requestAnimationFrame(()=>{
       const sw = iw * zoom, sh = ih * zoom;
-      lbStage.scrollLeft = Math.max(0, (sw - stageRect.width)/2);
-      lbStage.scrollTop  = Math.max(0, (sh - stageRect.height)/2);
+      lbStage.scrollLeft = Math.max(0, (sw - rect.width)/2);
+      lbStage.scrollTop  = Math.max(0, (sh - rect.height)/2);
     });
   }
 
@@ -285,7 +327,7 @@
   lightbox.addEventListener("click", (e)=>{ if(e.target === lightbox) closeLightbox(); });
   document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeLightbox(); });
 
-  // STRG + Mausrad zoomt in der Lightbox
+  // Strg + Mausrad zoomt in Lightbox
   lbStage.addEventListener("wheel", (e)=>{
     if(!lightbox.classList.contains("open")) return;
     if(!e.ctrlKey) return;
@@ -294,28 +336,33 @@
     stepZoom(dir * 0.12);
   }, { passive:false });
 
-  function openRoute(gName, idx){
-    active = { group:gName, index:idx };
+  function openRoute(groupName, idx){
+    active = { group:groupName, index:idx };
     render(elSearch.value);
 
-    const g = groupedClean.find(x=>x.group===gName);
+    const g = groupedClean.find(x => x.group === groupName);
     const r = g.items[idx];
-    elRouteName.textContent = r.name;
-    elRouteMeta.textContent = ""; // nix anzeigen
 
+    elRouteName.textContent = r.name;
     elContent.innerHTML = "";
+
     const img = document.createElement("img");
     img.className = "preview";
     img.src = r.file;
     img.alt = r.name;
     img.title = "Klicken zum Vergrößern";
     img.onclick = ()=> openLightbox(r.file, r.name);
+
+    img.onerror = ()=> {
+      elContent.innerHTML = `<div class="hint">Bild nicht gefunden: <b>${r.file}</b><br/>Prüf bitte den Dateinamen im images/ Ordner.</div>`;
+    };
+
     elContent.appendChild(img);
   }
 
-  function toggleGroup(gName){
-    if(collapsed.has(gName)) collapsed.delete(gName);
-    else collapsed.add(gName);
+  function toggleGroup(groupName){
+    if(collapsed.has(groupName)) collapsed.delete(groupName);
+    else collapsed.add(groupName);
     render(elSearch.value);
   }
 
@@ -343,10 +390,12 @@
       items.forEach(r=>{
         const origIndex = g.items.findIndex(x=>x.file===r.file);
         const isActive = (active.group===g.group && active.index===origIndex);
+
         const btn = document.createElement("div");
         btn.className = "item" + (isActive ? " active" : "");
         btn.innerHTML = `<span>${r.name}</span><small>▶</small>`;
         btn.onclick = ()=> openRoute(g.group, origIndex);
+
         body.appendChild(btn);
       });
 
