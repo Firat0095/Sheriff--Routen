@@ -3,204 +3,392 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SD – Standorte & Routen</title>
+<title>Standorte & Routen</title>
 
 <style>
-:root{
-  --bg:#0e1014;
-  --panel:#151a22;
-  --border:#232a36;
-  --text:#eaeaea;
-  --muted:#9aa4b2;
-  --green:#1f9d55;
-  --red:#b91c1c;
-}
+  :root{
+    --bg:#0e1014; --panel:#151a22; --border:#232a36; --text:#eaeaea; --muted:#9aa4b2;
+    --accent:#3b82f6;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:var(--bg); color:var(--text);
+  }
 
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui,Segoe UI,Roboto,Arial;
-  background:var(--bg);
-  color:var(--text);
-}
+  /* GOLDENER, GROßER SHERIFF-STERN MIT GLOW */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none;
+    background-repeat:no-repeat; background-position:center;
+    background-size:min(120vw, 1200px);
+    opacity:.24;
+    filter:drop-shadow(0 0 26px rgba(255,205,60,.60))
+           drop-shadow(0 0 75px rgba(255,160,0,.35));
+    background-image:url('data:image/svg+xml;utf8,\
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">\
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">\
+<stop offset="0" stop-color="%23FFE59A"/><stop offset="0.55" stop-color="%23FFBF3D"/><stop offset="1" stop-color="%23B87810"/>\
+</linearGradient></defs>\
+<g fill="none" stroke="url(%23g)" stroke-width="30">\
+<path d="M450 70l78 140 158-20-30 154 140 78-140 78 30 154-158-20-78 140-78-140-158 20 30-154-140-78 140-78-30-154 158 20z"/>\
+<circle cx="450" cy="450" r="230"/>\
+</g></svg>');
+  }
 
-/* SD INFO BAR */
-.sd-bar{
-  position:sticky;
-  top:0;
-  z-index:50;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  padding:10px 14px;
-  background:#0f172a;
-  border-bottom:2px solid #facc15;
-}
-.sd-bar b{color:#facc15}
-.sd-bar small{color:#d1d5db}
+  .app{display:grid; grid-template-columns:360px 1fr; height:100vh;}
+  .sidebar{
+    background:rgba(21,26,34,.92);
+    backdrop-filter: blur(6px);
+    border-right:1px solid var(--border);
+    padding:14px; overflow:auto;
+  }
+  .main{padding:14px; overflow:auto;}
 
-.sd-bar button{
-  background:#7c2d12;
-  border:none;
-  color:#fff;
-  padding:6px 10px;
-  border-radius:8px;
-  cursor:pointer;
-}
-.sd-bar button:hover{filter:brightness(1.1)}
+  .brand{display:flex; align-items:center; gap:10px; margin:0 0 10px;}
+  .brand .mark{
+    width:34px; height:34px; border-radius:10px;
+    border:1px solid var(--border);
+    display:grid; place-items:center;
+    background:#0f131b;
+  }
+  .brand h1{font-size:16px; margin:0;}
 
-.credit{
-  position:fixed;
-  right:12px;
-  bottom:10px;
-  font-size:12px;
-  color:#cbd5f5;
-  opacity:.8;
-}
+  .search{
+    width:100%; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--border);
+    background:#0f131b; color:var(--text); outline:none;
+  }
 
-.app{
-  display:grid;
-  grid-template-columns:360px 1fr;
-  height:calc(100vh - 56px);
-}
+  .group{margin-top:12px; border:1px solid var(--border); border-radius:14px; overflow:hidden; background:#0f131b;}
+  .groupHeader{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; cursor:pointer; user-select:none;
+    background:#101522;
+  }
+  .groupHeader .left{display:flex; align-items:center; gap:8px;}
+  .groupHeader b{font-size:13px;}
+  .badgeCount{color:var(--muted); font-size:12px;}
 
-.sidebar{
-  background:var(--panel);
-  border-right:1px solid var(--border);
-  padding:14px;
-  overflow:auto;
-}
+  .groupBody{padding:10px; display:flex; flex-direction:column; gap:8px;}
+  .item{
+    padding:10px 12px; border-radius:12px;
+    border:1px solid var(--border);
+    background:#0b0f17;
+    cursor:pointer; user-select:none;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .item:hover{filter:brightness(1.08);}
+  .item.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,.25) inset;}
+  .item small{color:var(--muted);}
 
-.main{padding:14px; overflow:auto}
+  .viewer{
+    background:rgba(21,26,34,.92);
+    backdrop-filter: blur(6px);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px;
+    min-height:calc(100vh - 28px);
+    display:flex; flex-direction:column; gap:10px;
+  }
 
-.group{margin-bottom:14px}
-.group h3{
-  margin:0 0 6px;
-  font-size:14px;
-  color:#facc15;
-}
+  /* KEIN TITEL ÜBER DEM BILD */
+  .title{display:none;}
 
-.item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:8px 10px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  margin-bottom:6px;
-  cursor:pointer;
-}
+  img.preview{
+    max-width:100%; height:auto;
+    border-radius:14px;
+    border:1px solid var(--border);
+    background:#0b0e13;
+    cursor:zoom-in;
+  }
 
-.badge{
-  padding:3px 8px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:700;
-}
+  .hint{
+    color:var(--muted);
+    font-size:14px;
+    padding:12px;
+    border:1px dashed var(--border);
+    border-radius:14px;
+  }
 
-.free{background:var(--green)}
-.used{background:var(--red)}
+  /* Lightbox: beim Öffnen NICHT übergroß */
+  .lightbox{position:fixed; inset:0; background:rgba(0,0,0,.82); display:none; z-index:9999;}
+  .lightbox.open{display:block;}
+  .lightbox .topbar{
+    position:fixed; top:10px; left:10px; right:10px;
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    z-index:10000;
+  }
+  .lightbox .btn{
+    background:rgba(21,26,34,.92);
+    border:1px solid rgba(255,255,255,.12);
+    color:white; padding:8px 10px; border-radius:12px;
+    cursor:pointer; font-size:12px; user-select:none;
+  }
+  .lightbox .stage{position:absolute; inset:0; overflow:auto; padding:70px 24px 24px;}
+  .lightbox .stageInner{width:max-content; height:max-content; margin:auto;}
+  .lightbox img{
+    display:block; transform-origin: top left;
+    border-radius:16px; border:1px solid rgba(255,255,255,.12);
+    background:#0b0e13;
+  }
 
-.viewer{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:14px;
-  min-height:100%;
-}
-
-img{
-  max-width:100%;
-  border-radius:12px;
-  border:1px solid var(--border);
-}
+  @media(max-width:900px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{height:45vh; border-right:none; border-bottom:1px solid var(--border);}
+    .viewer{min-height:unset;}
+  }
 </style>
 </head>
 
 <body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">⭐</div>
+      <h1>Standorte & Routen</h1>
+    </div>
+    <input id="search" class="search" placeholder="Suchen…">
+    <div id="groups"></div>
+  </aside>
 
-<div class="sd-bar">
-  <div>
-    <b>San Andreas Sheriff Department</b><br>
-    <small>Jede Route max. 1× pro RL-Tag | Nur mit RP-Grund</small>
-  </div>
-  <button onclick="resetAll()">🔄 Tages-Reset</button>
+  <main class="main">
+    <section class="viewer">
+      <div id="content">
+        <div class="hint" id="status">Lade Bilder aus GitHub…</div>
+      </div>
+    </section>
+  </main>
 </div>
 
-<div class="app">
-  <div class="sidebar" id="list"></div>
-  <div class="main">
-    <div class="viewer" id="viewer">
-      <small>Route auswählen</small>
+<div class="lightbox" id="lightbox">
+  <div class="topbar">
+    <div class="btn" id="lbTitle">—</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+      <div class="btn" id="zoomOut">−</div>
+      <div class="btn" id="zoomReset">Fit</div>
+      <div class="btn" id="zoomIn">+</div>
+      <div class="btn" id="lbClose">Schließen (Esc)</div>
+    </div>
+  </div>
+  <div class="stage" id="lbStage">
+    <div class="stageInner">
+      <img id="lbImg" alt="">
     </div>
   </div>
 </div>
 
-<div class="credit">Created by <b>Frank White</b></div>
-
 <script>
-const routes = [
-  {group:"Waffen", name:"Alamo Sea – Nordufer Waffenteile", file:"images/Alamo_Sea_Nordufer_Waffenteile.png"},
-  {group:"Waffen", name:"Waffenhersteller", file:"images/Waffenhersteller.png"},
-  {group:"Meth", name:"Methroute (4002)", file:"images/Methroute_4002.png"}
-];
+  /* ✅ HIER EINTRAGEN */
+  const OWNER = "Firat0095";
+  const REPO  = "Sheriff--Routen"; // genau wie dein Repo heißt
 
-const state = JSON.parse(localStorage.getItem("sd_routes") || "{}");
+  const icons = {
+    "Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪",
+    "Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"
+  };
+  const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt","Sonstiges"];
 
-function save(){ localStorage.setItem("sd_routes", JSON.stringify(state)); }
+  const elGroups = document.getElementById("groups");
+  const elSearch = document.getElementById("search");
+  const elContent = document.getElementById("content");
+  const elStatus = document.getElementById("status");
 
-function resetAll(){
-  if(!confirm("Alle heutigen Markierungen zurücksetzen?")) return;
-  for(const k in state) delete state[k];
-  save(); render();
-}
+  const lightbox = document.getElementById("lightbox");
+  const lbImg = document.getElementById("lbImg");
+  const lbTitle = document.getElementById("lbTitle");
+  const lbClose = document.getElementById("lbClose");
+  const lbStage = document.getElementById("lbStage");
+  const zoomInBtn = document.getElementById("zoomIn");
+  const zoomOutBtn = document.getElementById("zoomOut");
+  const zoomResetBtn = document.getElementById("zoomReset");
 
-function toggle(name){
-  if(state[name]){
-    alert("Diese Route wurde heute bereits gestürmt.");
-    return;
+  let groupedClean = [];
+  let collapsed = new Set();
+  let active = {group:null, file:null};
+  let zoom = 1;
+
+  function normKey(s){
+    return (s||"").toLowerCase().trim()
+      .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
+      .replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
   }
-  if(confirm(`Route "${name}" wirklich als GESTÜRMT markieren?`)){
-    state[name] = true;
-    save(); render();
+
+  function niceNameFromFile(filename){
+    // "Methroute_4002.png" -> "Methroute 4002"
+    let name = filename.replace(/\.[^.]+$/,"");
+    name = name.replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
+    return name;
   }
-}
 
-function render(){
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  const groups = {};
-  routes.forEach(r=>{
-    groups[r.group] ??= [];
-    groups[r.group].push(r);
-  });
+  function categoryFromName(name){
+    const n = normKey(name);
+    if (n.includes("weed")) return "Weed";
+    if (n.includes("meth")) return "Meth";
+    if (n.includes("koks") || n.includes("kokain") || n.includes("coke")) return "Koks";
+    if (n.includes("lsd")) return "LSD";
+    if (n.includes("waffen")) return "Waffen";
+    if (n.includes("schwarzmarkt")) return "Schwarzmarkt";
+    return "Sonstiges";
+  }
 
-  for(const g in groups){
-    list.innerHTML += `<div class="group"><h3>${g}</h3></div>`;
-    groups[g].forEach(r=>{
-      const used = state[r.name];
-      list.innerHTML += `
-        <div class="item" onclick="openRoute('${r.file}','${r.name}')">
-          ${r.name}
-          <span class="badge ${used ? "used" : "free"}">
-            ${used ? "GESTÜRMT" : "FREI"}
-          </span>
-        </div>
-      `;
+  function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
+
+  function fitZoomLimited(){
+    const rect = lbStage.getBoundingClientRect();
+    const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
+    if(!iw || !ih){ zoom = 0.9; applyZoom(); return; }
+    const scale = Math.min((rect.width * 0.92) / iw, (rect.height * 0.92) / ih);
+    zoom = Math.min(1.0, scale);   // nie übergroß beim Öffnen
+    applyZoom();
+    lbStage.scrollLeft = 0; lbStage.scrollTop = 0;
+  }
+
+  function openLightbox(src, title){
+    lbImg.src = src;
+    lbTitle.textContent = title;
+    lightbox.classList.add("open");
+    zoom = 0.95; // leicht größer
+    lbImg.onload = () => fitZoomLimited();
+  }
+  function closeLightbox(){ lightbox.classList.remove("open"); lbImg.src=""; }
+
+  function stepZoom(d){
+    zoom = Math.max(0.25, Math.min(1.6, zoom + d)); // begrenzt => nie “nur Hälfte”
+    applyZoom();
+  }
+
+  zoomInBtn.onclick  = ()=> stepZoom(0.10);
+  zoomOutBtn.onclick = ()=> stepZoom(-0.10);
+  zoomResetBtn.onclick = ()=> fitZoomLimited();
+  lbClose.onclick = closeLightbox;
+  lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
+
+  function openRoute(item){
+    active = {group:item.group, file:item.file};
+    render(elSearch.value);
+
+    elContent.innerHTML = "";
+    const img = document.createElement("img");
+    img.className = "preview";
+    img.src = item.file;
+    img.alt = item.name;
+    img.onclick = ()=> openLightbox(item.file, item.name);
+
+    img.onerror = ()=> {
+      elContent.innerHTML = `<div class="hint">❌ Bild kann nicht geladen werden:<br><b>${item.file}</b><br>
+      Prüfe, ob es wirklich im Repo unter <b>/images/</b> liegt.</div>`;
+    };
+
+    elContent.appendChild(img);
+  }
+
+  function toggleGroup(g){
+    if(collapsed.has(g)) collapsed.delete(g);
+    else collapsed.add(g);
+    render(elSearch.value);
+  }
+
+  function render(filterRaw=""){
+    const filter = (filterRaw||"").trim().toLowerCase();
+    elGroups.innerHTML = "";
+
+    groupedClean.forEach(g=>{
+      const items = g.items.filter(it => !filter || it.name.toLowerCase().includes(filter));
+      if(filter && items.length===0) return;
+
+      const wrap = document.createElement("div");
+      wrap.className = "group";
+
+      const header = document.createElement("div");
+      header.className = "groupHeader";
+      header.innerHTML = `<div class="left"><span>${icons[g.group]||"📍"}</span><b>${g.group}</b></div><span class="badgeCount">${items.length}</span>`;
+      header.onclick = ()=> toggleGroup(g.group);
+      wrap.appendChild(header);
+
+      const body = document.createElement("div");
+      body.className = "groupBody";
+      body.style.display = collapsed.has(g.group) ? "none" : "flex";
+
+      items.forEach(it=>{
+        const btn = document.createElement("div");
+        const isActive = (active.file === it.file);
+        btn.className = "item" + (isActive ? " active" : "");
+        btn.innerHTML = `<span>${it.name}</span><small>▶</small>`;
+        btn.onclick = ()=> openRoute(it);
+        body.appendChild(btn);
+      });
+
+      wrap.appendChild(body);
+      elGroups.appendChild(wrap);
     });
+
+    if(!elGroups.children.length){
+      const empty = document.createElement("div");
+      empty.className="hint";
+      empty.textContent="Keine Treffer.";
+      elGroups.appendChild(empty);
+    }
   }
-}
 
-function openRoute(file,name){
-  document.getElementById("viewer").innerHTML = `
-    <img src="${file}">
-    <br><br>
-    <button onclick="toggle('${name}')">Als gestürmt markieren</button>
-  `;
-}
+  async function loadFromGitHub(){
+    try{
+      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/images`;
+      const res = await fetch(url, {headers: {"Accept":"application/vnd.github+json"}});
+      if(!res.ok) throw new Error(`GitHub API Fehler: ${res.status}`);
 
-render();
+      const data = await res.json();
+      const files = (Array.isArray(data) ? data : [])
+        .map(x => x.name)
+        .filter(n => /\.(png|jpg|jpeg|webp)$/i.test(n));
+
+      if(files.length === 0){
+        elStatus.textContent = "Keine Bilder im /images/ Ordner gefunden.";
+        return;
+      }
+
+      // build items
+      const allItems = files.map(fn=>{
+        const name = niceNameFromFile(fn);
+        const group = categoryFromName(name);
+        return { group, name, file: `images/${encodeURIComponent(fn)}` };
+      });
+
+      // GLOBAL DEDUPE
+      const seenN = new Set();
+      const seenF = new Set();
+      const deduped = [];
+      for(const it of allItems){
+        const nk = normKey(it.name);
+        const fk = it.file.toLowerCase().trim();
+        if(seenN.has(nk) || seenF.has(fk)) continue;
+        seenN.add(nk); seenF.add(fk);
+        deduped.push(it);
+      }
+
+      // group + sort
+      const map = {};
+      for(const it of deduped){
+        (map[it.group] ||= []).push(it);
+      }
+      for(const g of Object.keys(map)){
+        map[g].sort((a,b)=> a.name.localeCompare(b.name, "de", {sensitivity:"base"}));
+      }
+
+      groupedClean = order
+        .filter(g => map[g] && map[g].length)
+        .map(g => ({group:g, items:map[g]}));
+
+      elStatus.remove();
+      render("");
+    }catch(err){
+      elStatus.textContent = "Fehler beim Laden aus GitHub. Prüfe OWNER/REPO oben im Code.";
+      console.error(err);
+    }
+  }
+
+  elSearch.addEventListener("input", ()=> render(elSearch.value));
+  loadFromGitHub();
 </script>
 </body>
 </html>
