@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Standorte & Routen</title>
+<style>
+:root{--bg:#0f1115;--panel:#151922;--text:#e8e8e8;--muted:#9aa4b2;--border:#232a36;--accent:#3b82f6;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);}
+
+/* Sheriff Wasserzeichen (dezent) */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image:
+    radial-gradient(circle at 12% 22%, rgba(255,255,255,.06) 0 2px, transparent 3px),
+    radial-gradient(circle at 72% 78%, rgba(255,255,255,.05) 0 2px, transparent 3px),
+    radial-gradient(circle at 40% 60%, rgba(255,255,255,.05) 0 2px, transparent 3px);
+  pointer-events:none;
+  opacity:.35;
+}
+/* großes Sheriff-Badge als SVG-Wasserzeichen */
+.app::before{
+  content:"";
+  position:fixed; inset:0;
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:min(62vw, 620px);
+  opacity:.07;
+  pointer-events:none;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600"><g fill="none" stroke="white" stroke-width="16"><path d="M300 60l46 82 92-12-18 90 80 46-80 46 18 90-92-12-46 82-46-82-92 12 18-90-80-46 80-46-18-90 92 12z"/><circle cx="300" cy="300" r="132"/><path d="M210 310l52-52 38 38 78-78 36 36-114 114z" fill="white" stroke="white"/></g></svg>');
+}
+
+.app{display:grid;grid-template-columns:360px 1fr;height:100vh;position:relative;}
+.sidebar{background:rgba(21,25,34,.92);backdrop-filter: blur(6px);border-right:1px solid var(--border);padding:14px;overflow:auto;}
+.main{padding:14px;overflow:auto;}
+
+.brand{display:flex;align-items:center;gap:10px;margin:0 0 10px;}
+.brand .badge{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);display:grid;place-items:center;background:#0f131b;}
+.brand h1{font-size:16px;margin:0;}
+
+.search{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0f131b;color:var(--text);outline:none;}
+
+.group{margin-top:12px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#0f131b;}
+.groupHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;cursor:pointer;user-select:none;background:#101522;}
+.groupHeader .left{display:flex;align-items:center;gap:8px;}
+.groupHeader b{font-size:13px;}
+.badgeCount{color:var(--muted);font-size:12px;}
+.groupBody{padding:10px;display:flex;flex-direction:column;gap:8px;}
+
+.item{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0b0f17;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.item:hover{filter:brightness(1.08);}
+.item.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,.25) inset;}
+.item small{color:var(--muted);}
+
+.viewer{background:rgba(21,25,34,.92);backdrop-filter: blur(6px);border:1px solid var(--border);border-radius:16px;padding:14px;min-height:calc(100vh - 28px);display:flex;flex-direction:column;gap:10px;}
+.title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.title .name{font-size:18px;font-weight:700;}
+.title .meta{color:var(--muted);font-size:12px;}
+img.preview{max-width:100%;height:auto;border-radius:14px;border:1px solid var(--border);background:#0b0e13;cursor:zoom-in;}
+.hint{color:var(--muted);font-size:14px;padding:12px;border:1px dashed var(--border);border-radius:14px;}
+.footer{color:var(--muted);font-size:12px;margin-top:auto;padding-top:10px;}
+
+/* Lightbox mit echtem Zoom */
+.lightbox{
+  position:fixed; inset:0; background:rgba(0,0,0,.82);
+  display:none; z-index:9999;
+}
+.lightbox.open{display:block;}
+.lightbox .topbar{
+  position:fixed; top:10px; left:10px; right:10px;
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  z-index:10000;
+}
+.lightbox .btn{
+  background:rgba(21,25,34,.92);
+  border:1px solid rgba(255,255,255,.12);
+  color:white; padding:8px 10px; border-radius:12px; cursor:pointer;
+  font-size:12px; user-select:none;
+}
+.lightbox .btn:active{transform: translateY(1px);}
+.lightbox .stage{
+  position:absolute; inset:0;
+  overflow:auto;
+  padding:70px 24px 24px;
+}
+.lightbox .stageInner{
+  width:max-content; height:max-content;
+  margin:auto;
+}
+.lightbox img{
+  display:block;
+  transform-origin: top left;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:#0b0e13;
+  cursor:zoom-out;
+}
+@media(max-width:900px){.app{grid-template-columns:1fr;}.sidebar{height:45vh;border-right:none;border-bottom:1px solid var(--border);}.viewer{min-height:unset;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="badge">⭐</div>
+      <h1>Standorte & Routen</h1>
+    </div>
+    <input id="search" class="search" placeholder="Suchen…" />
+    <div id="groups"></div>
+  </aside>
+
+  <main class="main">
+    <section class="viewer">
+      <div class="title">
+        <div class="name" id="routeName">—</div>
+        <div class="meta" id="routeMeta"></div>
+      </div>
+      <div id="content">
+        <div class="hint">Links auswählen → rechts öffnet sich das Bild. (Klick aufs Bild = Zoom)</div>
+      </div>
+      <div class="footer"><b>Tipp:</b> Für Discord ZIP hochladen oder als Datei bereitstellen. Lokal immer erst entpacken.</div>
+    </section>
+  </main>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <div class="topbar">
+    <div class="btn" id="lbTitle">—</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+      <div class="btn" id="zoomOut">−</div>
+      <div class="btn" id="zoomReset">Fit</div>
+      <div class="btn" id="zoomIn">+</div>
+      <div class="btn" id="lbClose">Schließen (Esc)</div>
+    </div>
+  </div>
+  <div class="stage" id="lbStage">
+    <div class="stageInner">
+      <img id="lbImg" alt="" />
+    </div>
+  </div>
+</div>
+
+<script>
+const grouped = [{"group": "Weed", "items": [{"name": "Weed Route", "file": "images/Weed_Route.png"}, {"name": "Weed Verarbeiter", "file": "images/Weed_Verarbeiter.png"}, {"name": "Weed Verkäufer", "file": "images/Weed_Verkaeufer.png"}]}, {"group": "Meth", "items": [{"name": "Alamo Sea Nähe Stab City Meth-Verarbeiter", "file": "images/Alamo_Sea_Naehe_Stab_City_Meth_Verarbeiter.png"}, {"name": "Alamo Sea Nähe Stab City Meth-Verarbeiter (Detail)", "file": "images/Alamo_Sea_Naehe_Stab_City_Meth_Verarbeiter_Detail.png"}, {"name": "Methroute (4002)", "file": "images/Methroute_4002.png"}, {"name": "Nordküste Great Ocean Hwy (North Chumash) Meth Verkäufer", "file": "images/Nordkueste_Great_Ocean_Hwy_North_Chumash_Meth_Verkaeufer.png"}]}, {"group": "Koks", "items": [{"name": "Paleto Cove Koksroute", "file": "images/Paleto_Cove_Koksroute.png"}, {"name": "Route 13 - Senora Freeway Koks Verkäufer", "file": "images/Route_13_Senora_Freeway_Koks_Verkaeufer.png"}]}, {"group": "LSD", "items": [{"name": "Sandy Shores LSD Spot", "file": "images/Sandy_Shores_LSD_Spot.png"}]}, {"group": "Waffen", "items": [{"name": "Waffenhersteller", "file": "images/Waffenhersteller.png"}]}, {"group": "Schwarzmarkt", "items": [{"name": "El Gordo Drive Schwarzmarkt", "file": "images/El_Gordo_Drive_Schwarzmarkt.png"}]}];
+const icons = {"Weed": "🌿", "Meth": "💉", "Koks": "❄️", "LSD": "🧪", "Waffen": "🔫", "Schwarzmarkt": "🕸️", "Sonstiges": "📍"};
+
+const elGroups = document.getElementById("groups");
+const elSearch = document.getElementById("search");
+const elRouteName = document.getElementById("routeName");
+const elRouteMeta = document.getElementById("routeMeta");
+const elContent = document.getElementById("content");
+
+const lightbox = document.getElementById("lightbox");
+const lbImg = document.getElementById("lbImg");
+const lbTitle = document.getElementById("lbTitle");
+const lbClose = document.getElementById("lbClose");
+const lbStage = document.getElementById("lbStage");
+const zoomInBtn = document.getElementById("zoomIn");
+const zoomOutBtn = document.getElementById("zoomOut");
+const zoomResetBtn = document.getElementById("zoomReset");
+
+let active = { group: null, index: -1 };
+let collapsed = new Set();
+let zoom = 1;
+
+function applyZoom() {
+  lbImg.style.transform = `scale(${zoom})`;
+}
+
+function fitZoom() {
+  // Fit image to viewport (stage size)
+  const stageRect = lbStage.getBoundingClientRect();
+  const iw = lbImg.naturalWidth;
+  const ih = lbImg.naturalHeight;
+  if (!iw || !ih) { zoom = 1; applyZoom(); return; }
+  const maxW = stageRect.width;
+  const maxH = stageRect.height;
+  const scale = Math.min(maxW / iw, maxH / ih);
+  zoom = Math.max(0.05, Math.min(6, scale));
+  applyZoom();
+
+  // Center scroll
+  requestAnimationFrame(() => {
+    const sw = iw * zoom, sh = ih * zoom;
+    lbStage.scrollLeft = Math.max(0, (sw - maxW)/2);
+    lbStage.scrollTop  = Math.max(0, (sh - maxH)/2);
+  });
+}
+
+function openLightbox(src, title){
+  lbImg.src = src;
+  lbImg.alt = title;
+  lbTitle.textContent = title;
+  lightbox.classList.add("open");
+  zoom = 1;
+  lbImg.onload = () => fitZoom();
+}
+
+function closeLightbox(){
+  lightbox.classList.remove("open");
+  lbImg.src = "";
+}
+
+function stepZoom(delta) {
+  zoom = Math.max(0.05, Math.min(6, zoom + delta));
+  applyZoom();
+}
+
+zoomInBtn.addEventListener("click", () => stepZoom(0.15));
+zoomOutBtn.addEventListener("click", () => stepZoom(-0.15));
+zoomResetBtn.addEventListener("click", () => fitZoom());
+
+lbClose.addEventListener("click", closeLightbox);
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeLightbox();
+});
+
+// Mousewheel zoom (optional)
+lbStage.addEventListener("wheel", (e) => {
+  if (!lightbox.classList.contains("open")) return;
+  if (!e.ctrlKey) return; // nur mit STRG zoomen (sonst scroll)
+  e.preventDefault();
+  const dir = e.deltaY > 0 ? -1 : 1;
+  stepZoom(dir * 0.12);
+}, { passive:false });
+
+function openRoute(gName, idx) {
+  active = { group: gName, index: idx };
+  render(elSearch.value);
+  const g = grouped.find(x => x.group === gName);
+  const r = g.items[idx];
+  elRouteName.textContent = r.name;
+  elRouteMeta.textContent = r.file;
+
+  elContent.innerHTML = "";
+  const img = document.createElement("img");
+  img.className = "preview";
+  img.src = r.file;
+  img.alt = r.name;
+  img.title = "Klicken zum Vergrößern";
+  img.onclick = () => openLightbox(r.file, r.name);
+  elContent.appendChild(img);
+}
+
+function toggleGroup(gName) {
+  if (collapsed.has(gName)) collapsed.delete(gName);
+  else collapsed.add(gName);
+  render(elSearch.value);
+}
+
+function render(filterRaw="") {
+  const filter = (filterRaw || "").trim().toLowerCase();
+  elGroups.innerHTML = "";
+
+  grouped.forEach(g => {
+    const items = g.items.filter(it => !filter || it.name.toLowerCase().includes(filter));
+    if (filter && items.length === 0) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "group";
+
+    const header = document.createElement("div");
+    header.className = "groupHeader";
+    header.innerHTML = `<div class="left"><span>${icons[g.group] || "📍"}</span><b>${g.group}</b></div><span class="badgeCount">${items.length}</span>`;
+    header.onclick = () => toggleGroup(g.group);
+    wrap.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "groupBody";
+    body.style.display = collapsed.has(g.group) ? "none" : "flex";
+
+    items.forEach(r => {
+      const origIndex = g.items.findIndex(x => x.file === r.file);
+      const btn = document.createElement("div");
+      const isActive = (active.group === g.group && active.index === origIndex);
+      btn.className = "item" + (isActive ? " active" : "");
+      btn.innerHTML = `<span>${r.name}</span><small>▶</small>`;
+      btn.onclick = () => openRoute(g.group, origIndex);
+      body.appendChild(btn);
+    });
+
+    wrap.appendChild(body);
+    elGroups.appendChild(wrap);
+  });
+
+  if (!elGroups.children.length) {
+    const empty = document.createElement("div");
+    empty.className = "hint";
+    empty.textContent = "Keine Treffer.";
+    elGroups.appendChild(empty);
+  }
+}
+
+elSearch.addEventListener("input", () => render(elSearch.value));
+render();
+</script>
+</body>
+</html>
