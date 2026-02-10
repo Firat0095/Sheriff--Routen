@@ -13,7 +13,7 @@
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);}
 
-  /* Sheriff Stern */
+  /* Sheriff Stern Hintergrund */
   body::before{
     content:""; position:fixed; inset:0; pointer-events:none;
     background-repeat:no-repeat; background-position:center;
@@ -177,29 +177,31 @@
   .infoBody ul{ margin:0; padding-left:18px; }
   .infoBody li{ margin:6px 0; }
 
-  /* Profilbild unter Status */
+  /* ✅ Status + Profilbild UNTEREINANDER */
   .statusWithPic{
     display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
+    flex-direction:column;
+    gap:10px;
+    align-items:flex-end;
   }
   .profileWrap{
-    width:110px;height:110px;
-    border-radius:999px;
+    width:170px;
+    height:260px;
+    border-radius:18px;
     border:1px solid rgba(255,255,255,.12);
     overflow:hidden;
-    background:rgba(0,0,0,.15);
+    background:rgba(0,0,0,.10);
     box-shadow:
-      0 0 0 3px rgba(255,255,255,.06),
+      0 0 0 3px rgba(255,255,255,.05),
       0 10px 35px rgba(0,0,0,.55);
-    flex:0 0 auto;
+    cursor:zoom-in;
   }
   .profileWrap img{
     width:100%;
     height:100%;
-    object-fit:cover;
-    transform:translateY(4px); /* wirkt meist besser bei Ganzkörper */
+    object-fit:contain;   /* GANZER Körper sichtbar */
+    object-position:center;
+    background:transparent;
   }
 
   /* Lightbox */
@@ -222,6 +224,7 @@
     .app{grid-template-columns:1fr; height:auto;}
     .panel{min-height:unset;}
     .previewWrap, img.preview{max-height:65vh;}
+    .statusWithPic{align-items:flex-start;}
   }
 </style>
 </head>
@@ -315,13 +318,14 @@
 
       <div style="height:14px"></div>
 
-      <!-- Status + Profilbild -->
+      <!-- ✅ Status + Profilbild DARUNTER -->
       <div class="hint" style="margin:0;">
         <div class="statusWithPic">
           <div>
             <b>Status:</b> ✅ = bereits gestürmt • — = offen
           </div>
-          <div class="profileWrap" title="profil.png">
+
+          <div class="profileWrap" id="profileCard" title="profil.png">
             <img src="images/profil.png" alt="Profil">
           </div>
         </div>
@@ -352,7 +356,7 @@
 
 <script>
   const icons = {"Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪","Waffen":"🔫","Schwarzmarkt":"🕸️"};
-  const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt"]; // Sonstiges weg
+  const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt"];
 
   const elGroups = document.getElementById("groups");
   const elSearch = document.getElementById("search");
@@ -375,15 +379,13 @@
   let activeItem = null;
   let zoom = 1;
 
-  // Status Speicherung
-  const STORAGE_KEY = "sd_raids_status_v_final";
+  const STORAGE_KEY = "sd_raids_status_v6";
   function loadStatus(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}"); }catch{ return {}; } }
   function saveStatus(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
   function isStormed(file){ const s=loadStatus(); return !!s[file]; }
   function setStormed(file,val){ const s=loadStatus(); if(val) s[file]=true; else delete s[file]; saveStatus(s); }
   function resetAllStormed(){ saveStatus({}); }
 
-  // Helpers
   function normKey(s){
     return (s||"").toLowerCase().trim()
       .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
@@ -393,24 +395,22 @@
     return filename.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
   }
 
-  // ✅ Route-Namen ohne Orte (dein Wunsch)
+  /* ✅ Namen ohne Orte */
   function simplifyDisplayName(raw){
     const n = normKey(raw);
 
-    // Priorität: spezielle eindeutige
     if(n.includes("waffenhersteller")) return "Waffenhersteller";
     if(n.includes("waffenteile")) return "Waffenteile";
     if(n.includes("schwarzmarkt")) return "Schwarzmarkt";
     if(n.includes("lsd") && (n.includes("spot") || n.includes("punkt"))) return "LSD Spot";
 
-    // Drogen / Rollen
     const hasWeed = n.includes("weed");
     const hasMeth = n.includes("meth");
     const hasKoks = n.includes("koks") || n.includes("kokain") || n.includes("coke");
     const hasLsd  = n.includes("lsd");
-    const isVerkaeufer = n.includes("verkaeufer") || n.includes("verkaeuferin") || n.includes("dealer");
-    const isVerarbeiter = n.includes("verarbeiter") || n.includes("verarbeitung") || n.includes("verarbeite");
-    const isRoute = n.includes("route") || n.includes("routen");
+    const isVerkaeufer = n.includes("verkaeufer") || n.includes("dealer");
+    const isVerarbeiter = n.includes("verarbeiter") || n.includes("verarbeitung");
+    const isRoute = n.includes("route");
 
     if(hasWeed){
       if(isVerarbeiter) return "Weed Verarbeiter";
@@ -434,15 +434,7 @@
       return "LSD";
     }
 
-    // Fallback: entferne typische Orte/Wörter
-    const remove = [
-      "paleto","cove","alamo","sea","sandy","shores","stab","city","north","sued","ost","west",
-      "great","ocean","highway","freeway","chumash","senora","gordo","drive","nahe","hoehe","nordufer","nordkueste"
-    ];
-    let parts = raw.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").split(/\s+/).filter(Boolean);
-    parts = parts.filter(p => !remove.includes(normKey(p)));
-    let out = parts.join(" ").trim();
-    return out || raw;
+    return raw;
   }
 
   function categoryFromName(name){
@@ -453,7 +445,7 @@
     if (n.includes("lsd")) return "LSD";
     if (n.includes("waffen") || n.includes("waffenteile") || n.includes("waffenhersteller")) return "Waffen";
     if (n.includes("schwarzmarkt")) return "Schwarzmarkt";
-    return null; // kein Sonstiges
+    return null;
   }
 
   function inferOwnerRepo(){
@@ -467,7 +459,6 @@
     return { owner: "Firat0095", repo: "Sheriff--Routen" };
   }
 
-  // Counter
   function computeCounts(){
     let total = 0, done = 0;
     const perGroup = {};
@@ -485,7 +476,7 @@
     overallPill.className = "pill " + (total>0 && done===total ? "ok" : "");
   }
 
-  // Lightbox
+  /* Lightbox */
   function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
   function fitZoomLimited(){
     const rect = lbStage.getBoundingClientRect();
@@ -515,7 +506,12 @@
   lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
   document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
 
-  // Viewer
+  /* Profilbild klickbar */
+  const profileCard = document.getElementById("profileCard");
+  if(profileCard){
+    profileCard.addEventListener("click", ()=> openLightbox("images/profil.png","Profil"));
+  }
+
   function renderViewer(item){
     activeItem = item;
     elTitle.textContent = item.displayName;
@@ -574,7 +570,6 @@
     elContent.appendChild(wrap);
   }
 
-  // Sidebar
   function toggleGroup(g){
     if(collapsed.has(g)) collapsed.delete(g);
     else collapsed.add(g);
@@ -588,16 +583,7 @@
     const counts = computeCounts();
 
     groupedClean.forEach(g=>{
-      const local = new Set();
-      const items = g.items
-        .filter(it => !filter || it.displayName.toLowerCase().includes(filter))
-        .filter(it => {
-          const k = normKey(it.displayName) + "||" + it.file.toLowerCase();
-          if(local.has(k)) return false;
-          local.add(k);
-          return true;
-        });
-
+      const items = g.items.filter(it => !filter || it.displayName.toLowerCase().includes(filter));
       if(filter && items.length===0) return;
 
       const wrap = document.createElement("div");
@@ -658,24 +644,21 @@
       const files = (Array.isArray(data) ? data : [])
         .map(x => x.name)
         .filter(n => /\.(png|jpg|jpeg|webp)$/i.test(n))
-        .filter(n => n.toLowerCase() !== "profil.png"); // Profilbild nicht als Route zählen
+        .filter(n => n.toLowerCase() !== "profil.png"); // Profilbild nicht als Route
 
-      if(files.length === 0){
-        elGroups.innerHTML = `<div class="hint">Keine Route-Bilder im Ordner <b>/images</b> gefunden.</div>`;
-        return;
-      }
+      const all = files.map(fn=>{
+        const rawName = niceNameFromFile(fn);
+        const group = categoryFromName(rawName);
+        if(!group) return null;
+        return {
+          group,
+          rawName,
+          displayName: simplifyDisplayName(rawName),
+          file: `images/${encodeURIComponent(fn)}`
+        };
+      }).filter(Boolean);
 
-      const all = files
-        .map(fn=>{
-          const rawName = niceNameFromFile(fn);
-          const group = categoryFromName(rawName);
-          if(!group) return null;
-          const displayName = simplifyDisplayName(rawName);
-          return { group, rawName, displayName, file: `images/${encodeURIComponent(fn)}` };
-        })
-        .filter(Boolean);
-
-      // Dedupe (und "detail" raus)
+      // Dedup + "detail" raus
       const seenName = new Set();
       const seenFile = new Set();
       const deduped = [];
@@ -688,15 +671,11 @@
         deduped.push(it);
       }
 
-      // Gruppieren + sortieren
       const map = {};
       for(const it of deduped) (map[it.group] ||= []).push(it);
       Object.keys(map).forEach(g => map[g].sort((a,b)=> a.displayName.localeCompare(b.displayName,"de",{sensitivity:"base"})));
 
-      groupedClean = order
-        .filter(g => map[g]?.length)
-        .map(g => ({group:g, items: map[g]}));
-
+      groupedClean = order.filter(g => map[g]?.length).map(g => ({group:g, items: map[g]}));
       render("");
     }catch(e){
       elGroups.innerHTML = `<div class="hint">Fehler beim Laden. Öffne die Seite über <b>GitHub Pages</b>.</div>`;
@@ -704,7 +683,6 @@
     }
   }
 
-  // Info einklappbar
   document.addEventListener("click", (e)=>{
     const t = e.target.closest("[data-toggle]");
     if(!t) return;
