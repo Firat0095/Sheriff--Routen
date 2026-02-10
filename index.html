@@ -26,16 +26,13 @@
       drop-shadow(0 0 75px rgba(255,160,0,.35));
     background-image:url('data:image/svg+xml;utf8,\
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">\
-<defs>\
-  <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">\
-    <stop offset="0" stop-color="%23FFE59A"/><stop offset="0.55" stop-color="%23FFBF3D"/><stop offset="1" stop-color="%23B87810"/>\
-  </linearGradient>\
-</defs>\
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">\
+<stop offset="0" stop-color="%23FFE59A"/><stop offset="0.55" stop-color="%23FFBF3D"/><stop offset="1" stop-color="%23B87810"/>\
+</linearGradient></defs>\
 <g fill="none" stroke="url(%23g)" stroke-width="30">\
 <path d="M450 70l78 140 158-20-30 154 140 78-140 78 30 154-158-20-78 140-78-140-158 20 30-154-140-78 140-78-30-154 158 20z"/>\
 <circle cx="450" cy="450" r="230"/>\
-</g>\
-</svg>');
+</g></svg>');
   }
 
   .app{display:grid; grid-template-columns:360px 1fr; height:100vh;}
@@ -55,6 +52,7 @@
     background:#0f131b;
   }
   .brand h1{font-size:16px; margin:0;}
+  .ver{color:var(--muted); font-size:11px; margin-left:auto;}
 
   .search{
     width:100%; padding:10px 12px; border-radius:10px;
@@ -93,7 +91,7 @@
     display:flex; flex-direction:column; gap:10px;
   }
 
-  /* KEIN TITEL ÜBER DEM BILD -> damit nix doppelt ist */
+  /* KEIN TITEL ÜBER DEM BILD */
   .title{display:none;}
 
   img.preview{
@@ -112,11 +110,8 @@
     border-radius:14px;
   }
 
-  /* LIGHTBOX / ZOOM (Start: NICHT ÜBERGROSS) */
-  .lightbox{
-    position:fixed; inset:0; background:rgba(0,0,0,.82);
-    display:none; z-index:9999;
-  }
+  /* Lightbox: nie übergroß beim Öffnen */
+  .lightbox{position:fixed; inset:0; background:rgba(0,0,0,.82); display:none; z-index:9999;}
   .lightbox.open{display:block;}
   .lightbox .topbar{
     position:fixed; top:10px; left:10px; right:10px;
@@ -129,19 +124,12 @@
     color:white; padding:8px 10px; border-radius:12px;
     cursor:pointer; font-size:12px; user-select:none;
   }
-  .lightbox .stage{
-    position:absolute; inset:0;
-    overflow:auto;
-    padding:70px 24px 24px;
-  }
+  .lightbox .stage{position:absolute; inset:0; overflow:auto; padding:70px 24px 24px;}
   .lightbox .stageInner{width:max-content; height:max-content; margin:auto;}
   .lightbox img{
-    display:block;
-    transform-origin: top left;
-    border-radius:16px;
-    border:1px solid rgba(255,255,255,.12);
+    display:block; transform-origin: top left;
+    border-radius:16px; border:1px solid rgba(255,255,255,.12);
     background:#0b0e13;
-    cursor:zoom-out;
   }
 
   @media(max-width:900px){
@@ -158,6 +146,7 @@
     <div class="brand">
       <div class="mark">⭐</div>
       <h1>Standorte & Routen</h1>
+      <div class="ver">vFinal-1</div>
     </div>
     <input id="search" class="search" placeholder="Suchen…">
     <div id="groups"></div>
@@ -165,7 +154,6 @@
 
   <main class="main">
     <section class="viewer">
-      <div class="title"></div>
       <div id="content">
         <div class="hint">Links auswählen → rechts öffnet sich das Bild. (Klick aufs Bild = Zoom)</div>
       </div>
@@ -196,7 +184,7 @@
     "Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"
   };
 
-  // ROUTEN: exakt nach deiner GitHub images/ Liste (Meth Detail entfernt)
+  // Dateinamen: exakt wie in deinem GitHub images/ Screenshot
   const grouped = [
     {"group":"Weed","items":[
       {"name":"Weed Route","file":"images/Weed_Route.png"},
@@ -216,6 +204,7 @@
       {"name":"Sandy Shores LSD Spot","file":"images/Sandy_Shores_LSD_Spot.png"}
     ]},
     {"group":"Waffen","items":[
+      // Waffenteile wird nur angezeigt, wenn Datei wirklich existiert:
       {"name":"Alamo Sea – Nordufer Waffenteile","file":"images/Alamo_Sea_Nordufer_Waffenteile.png"},
       {"name":"Waffenhersteller","file":"images/Waffenhersteller.png"}
     ]},
@@ -224,12 +213,13 @@
     ]}
   ];
 
-  // GLOBAL Duplikate weg (Name + Datei)
   function normKey(s){
     return (s||"").toLowerCase().trim()
       .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
       .replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
   }
+
+  // GLOBAL DEDUPE + später beim Render nochmal Hard-Dedupe
   const seenNames = new Set();
   const seenFiles = new Set();
   const groupedClean = grouped.map(g => {
@@ -261,35 +251,27 @@
 
   function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
 
-  // FIT, aber begrenzt: nie größer als 1.0 und mit 90% Padding -> NICHT ÜBERGROSS
+  // Fit, aber begrenzt: immer komplett sichtbar und nicht übertrieben
   function fitZoomLimited(){
     const rect = lbStage.getBoundingClientRect();
     const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
     if(!iw || !ih){ zoom = 0.9; applyZoom(); return; }
-
-    const scale = Math.min((rect.width * 0.90) / iw, (rect.height * 0.90) / ih);
-    zoom = Math.min(1.0, scale);     // niemals über 100%
+    const scale = Math.min((rect.width * 0.92) / iw, (rect.height * 0.92) / ih);
+    zoom = Math.min(1.0, scale);    // nie über 100% beim Öffnen
     applyZoom();
-
-    lbStage.scrollLeft = 0;
-    lbStage.scrollTop  = 0;
+    lbStage.scrollLeft = 0; lbStage.scrollTop = 0;
   }
 
   function openLightbox(src, title){
     lbImg.src = src;
     lbTitle.textContent = title;
     lightbox.classList.add("open");
-    zoom = 0.95;                     // leicht größer, aber safe
+    zoom = 0.95;                    // leicht größer, aber safe
     lbImg.onload = () => fitZoomLimited();
   }
-
-  function closeLightbox(){
-    lightbox.classList.remove("open");
-    lbImg.src = "";
-  }
-
+  function closeLightbox(){ lightbox.classList.remove("open"); lbImg.src=""; }
   function stepZoom(d){
-    zoom = Math.max(0.2, Math.min(1.6, zoom + d)); // begrenzt, damit nie krank groß
+    zoom = Math.max(0.25, Math.min(1.6, zoom + d)); // begrenzt, damit nie „nur Hälfte“
     applyZoom();
   }
 
@@ -297,28 +279,39 @@
   zoomOutBtn.onclick = ()=> stepZoom(-0.10);
   zoomResetBtn.onclick = ()=> fitZoomLimited();
   lbClose.onclick = closeLightbox;
-
   lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
   document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
 
-  function openRoute(groupName, idx){
+  // Prüft ob Bild existiert (wichtig für Waffenteile)
+  function imageExists(path){
+    return new Promise(resolve=>{
+      const t = new Image();
+      t.onload = ()=> resolve(true);
+      t.onerror = ()=> resolve(false);
+      t.src = path + (path.includes("?") ? "&" : "?") + "v=" + Date.now();
+    });
+  }
+
+  async function openRoute(groupName, idx){
     const g = groupedClean.find(x=>x.group===groupName);
     const r = g.items[idx];
+
+    const ok = await imageExists(r.file);
+    if(!ok){
+      // Wenn eine Datei fehlt: Eintrag „verschwindet“ automatisch + Meldung
+      g.items.splice(idx,1);
+      render(elSearch.value);
+      elContent.innerHTML = `<div class="hint">❌ Datei fehlt in /images/: <b>${r.file}</b><br>
+      Lade das Bild in GitHub → <b>images/</b> hoch oder benenne es exakt so.</div>`;
+      return;
+    }
 
     elContent.innerHTML = "";
     const img = document.createElement("img");
     img.className = "preview";
     img.src = r.file;
     img.alt = r.name;
-    img.title = "Klicken zum Vergrößern";
     img.onclick = ()=> openLightbox(r.file, r.name);
-
-    img.onerror = ()=> {
-      elContent.innerHTML =
-        `<div class="hint">❌ Bild nicht gefunden: <b>${r.file}</b><br>
-        Prüfe bitte den Dateinamen im Ordner <b>images/</b>.</div>`;
-    };
-
     elContent.appendChild(img);
   }
 
@@ -333,7 +326,17 @@
     elGroups.innerHTML = "";
 
     groupedClean.forEach(g=>{
-      const items = g.items.filter(it=>!filter || it.name.toLowerCase().includes(filter));
+      // HARD-DEDUPED Render (zur Sicherheit)
+      const seenLocal = new Set();
+      const items = (g.items||[])
+        .filter(it=>!filter || it.name.toLowerCase().includes(filter))
+        .filter(it=>{
+          const k = normKey(it.name) + "||" + (it.file||"").toLowerCase().trim();
+          if(seenLocal.has(k)) return false;
+          seenLocal.add(k);
+          return true;
+        });
+
       if(filter && items.length===0) return;
 
       const wrap = document.createElement("div");
@@ -341,9 +344,7 @@
 
       const header = document.createElement("div");
       header.className="groupHeader";
-      header.innerHTML =
-        `<div class="left"><span>${icons[g.group]||"📍"}</span><b>${g.group}</b></div>
-         <span class="badgeCount">${items.length}</span>`;
+      header.innerHTML = `<div class="left"><span>${icons[g.group]||"📍"}</span><b>${g.group}</b></div><span class="badgeCount">${items.length}</span>`;
       header.onclick = ()=> toggleGroup(g.group);
       wrap.appendChild(header);
 
@@ -351,11 +352,12 @@
       body.className="groupBody";
       body.style.display = collapsed.has(g.group) ? "none" : "flex";
 
-      items.forEach((r, i)=>{
+      items.forEach((r)=>{
+        const idx = g.items.findIndex(x=>x.file===r.file && x.name===r.name);
         const btn = document.createElement("div");
         btn.className = "item";
         btn.innerHTML = `<span>${r.name}</span><small>▶</small>`;
-        btn.onclick = ()=> openRoute(g.group, i);
+        btn.onclick = ()=> openRoute(g.group, idx);
         body.appendChild(btn);
       });
 
