@@ -21,7 +21,7 @@
     content:""; position:fixed; inset:0; pointer-events:none;
     background-repeat:no-repeat; background-position:center;
     background-size:min(120vw, 1200px);
-    opacity:.24;
+    opacity:.22;
     filter:drop-shadow(0 0 26px rgba(255,205,60,.60))
            drop-shadow(0 0 75px rgba(255,160,0,.35));
     background-image:url('data:image/svg+xml;utf8,\
@@ -35,73 +35,87 @@
 </g></svg>');
   }
 
-  .app{display:grid; grid-template-columns:360px 1fr; height:100vh;}
-  .sidebar{
+  /* Layout: links Liste, Mitte Bild, rechts Info */
+  .app{
+    display:grid;
+    grid-template-columns:360px 1fr 380px;
+    height:100vh;
+    gap:14px;
+    padding:14px;
+  }
+
+  .panel{
     background:rgba(21,26,34,.92);
     backdrop-filter: blur(6px);
-    border-right:1px solid var(--border);
-    padding:14px; overflow:auto;
-  }
-  .main{padding:14px; overflow:auto;}
-
-  .brand{display:flex; align-items:center; gap:10px; margin:0 0 10px;}
-  .brand .mark{
-    width:34px; height:34px; border-radius:10px;
     border:1px solid var(--border);
-    display:grid; place-items:center;
-    background:#0f131b;
-  }
-  .brand h1{font-size:16px; margin:0;}
-
-  .search{
-    width:100%; padding:10px 12px; border-radius:10px;
-    border:1px solid var(--border);
-    background:#0f131b; color:var(--text); outline:none;
+    border-radius:16px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
   }
 
-  .group{margin-top:12px; border:1px solid var(--border); border-radius:14px; overflow:hidden; background:#0f131b;}
-  .groupHeader{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    padding:10px 12px; cursor:pointer; user-select:none;
+  .panelHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 14px;
+    border-bottom:1px solid var(--border);
     background:#101522;
   }
-  .groupHeader .left{display:flex; align-items:center; gap:8px;}
-  .groupHeader b{font-size:13px;}
-  .badgeCount{color:var(--muted); font-size:12px;}
-
-  .groupBody{padding:10px; display:flex; flex-direction:column; gap:8px;}
-  .item{
-    padding:10px 12px; border-radius:12px;
+  .brand{
+    display:flex;align-items:center;gap:10px;min-width:0;
+  }
+  .mark{
+    width:34px;height:34px;border-radius:10px;
     border:1px solid var(--border);
-    background:#0b0f17;
-    cursor:pointer; user-select:none;
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    display:grid;place-items:center;background:#0f131b;
+    flex:0 0 auto;
+  }
+  .brandTitle{
+    font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  .searchWrap{ padding:12px 14px; border-bottom:1px solid var(--border); }
+  .search{
+    width:100%;padding:10px 12px;border-radius:10px;
+    border:1px solid var(--border);
+    background:#0f131b;color:var(--text);outline:none;
+  }
+
+  .scroll{ overflow:auto; padding:12px 14px; min-height:0; }
+
+  .group{margin-top:12px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#0f131b;}
+  .group:first-child{margin-top:0;}
+  .groupHeader{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 12px;cursor:pointer;user-select:none;background:#101522;
+  }
+  .groupHeader .left{display:flex;align-items:center;gap:8px;}
+  .groupHeader b{font-size:13px;}
+  .badgeCount{color:var(--muted);font-size:12px;}
+
+  .groupBody{padding:10px;display:flex;flex-direction:column;gap:8px;}
+  .item{
+    padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+    background:#0b0f17;cursor:pointer;user-select:none;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
   }
   .item:hover{filter:brightness(1.08);}
   .item.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,.25) inset;}
   .item small{color:var(--muted);}
 
-  .viewer{
-    background:rgba(21,26,34,.92);
-    backdrop-filter: blur(6px);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:14px;
-    min-height:calc(100vh - 28px);
-    display:flex; flex-direction:column; gap:10px;
-  }
-
-  /* KEIN TITEL ÜBER DEM BILD */
-  .title{display:none;}
-
+  /* Viewer (Mitte) */
+  .viewerInner{ padding:14px; }
   img.preview{
-    max-width:100%; height:auto;
+    width:100%;
+    height:auto;
     border-radius:14px;
     border:1px solid var(--border);
     background:#0b0e13;
     cursor:zoom-in;
   }
-
   .hint{
     color:var(--muted);
     font-size:14px;
@@ -110,7 +124,29 @@
     border-radius:14px;
   }
 
-  /* Lightbox: beim Öffnen NICHT übergroß */
+  /* Info Panel rechts */
+  .infoBlock{ border:1px solid var(--border); border-radius:14px; background:#0f131b; overflow:hidden; }
+  .infoTitle{
+    margin:0; padding:10px 12px; background:#101522; border-bottom:1px solid var(--border);
+    font-size:13px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    cursor:pointer; user-select:none;
+  }
+  .infoBody{ padding:10px 12px; display:block; }
+  .infoBody ul{ margin:0; padding-left:18px; color:var(--text); }
+  .infoBody li{ margin:6px 0; color:var(--text); }
+  .muted{ color:var(--muted); font-size:12px; line-height:1.4; }
+
+  /* Unterschrift unten */
+  .signature{
+    margin-top:12px;
+    padding:10px 12px;
+    color:var(--muted);
+    font-size:12px;
+    border-top:1px solid var(--border);
+    text-align:center;
+  }
+
+  /* Lightbox */
   .lightbox{position:fixed; inset:0; background:rgba(0,0,0,.82); display:none; z-index:9999;}
   .lightbox.open{display:block;}
   .lightbox .topbar{
@@ -132,34 +168,117 @@
     background:#0b0e13;
   }
 
-  @media(max-width:900px){
-    .app{grid-template-columns:1fr;}
-    .sidebar{height:45vh; border-right:none; border-bottom:1px solid var(--border);}
-    .viewer{min-height:unset;}
+  @media(max-width:1100px){
+    .app{grid-template-columns:1fr; height:auto;}
+    .panel{min-height:unset;}
   }
 </style>
 </head>
 
 <body>
 <div class="app">
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="mark">⭐</div>
-      <h1>Standorte & Routen</h1>
-    </div>
-    <input id="search" class="search" placeholder="Suchen…">
-    <div id="groups"></div>
-  </aside>
 
-  <main class="main">
-    <section class="viewer">
-      <div id="content">
-        <div class="hint" id="status">Lade Bilder aus GitHub…</div>
+  <!-- Sidebar -->
+  <section class="panel" id="leftPanel">
+    <div class="panelHeader">
+      <div class="brand">
+        <div class="mark">⭐</div>
+        <h1 class="brandTitle">Standorte & Routen</h1>
       </div>
-    </section>
-  </main>
+      <div class="muted">LIVE</div>
+    </div>
+
+    <div class="searchWrap">
+      <input id="search" class="search" placeholder="Suchen…">
+    </div>
+
+    <div class="scroll" id="groups"></div>
+
+    <!-- UNTERSCHRIFT -->
+    <div class="signature" id="signature">
+      — Sheriff Department • Interne Übersicht —
+    </div>
+  </section>
+
+  <!-- Viewer -->
+  <section class="panel" id="viewerPanel">
+    <div class="panelHeader">
+      <div class="brand">
+        <div class="mark">🗺️</div>
+        <h1 class="brandTitle" id="currentTitle">Vorschau</h1>
+      </div>
+      <div class="muted" id="currentSub">Klick links eine Route</div>
+    </div>
+    <div class="viewerInner" id="content">
+      <div class="hint">Links auswählen → rechts öffnet sich das Bild. (Klick aufs Bild = Zoom)</div>
+    </div>
+  </section>
+
+  <!-- Info rechts -->
+  <section class="panel" id="infoPanel">
+    <div class="panelHeader">
+      <div class="brand">
+        <div class="mark">ℹ️</div>
+        <h1 class="brandTitle">Info & Ablauf</h1>
+      </div>
+      <div class="muted">PD/SO</div>
+    </div>
+
+    <div class="scroll" id="infoScroll">
+      <!-- ✅ HIER DEINE INFOS REINSCHREIBEN -->
+      <div class="infoBlock">
+        <div class="infoTitle" data-toggle="info1">
+          Allgemein <span class="muted">▼</span>
+        </div>
+        <div class="infoBody" id="info1">
+          <ul>
+            <li>Nur IC / Ingame nutzen.</li>
+            <li>Keine Weitergabe außerhalb der Fraktion.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div class="infoBlock">
+        <div class="infoTitle" data-toggle="info2">
+          Reset / Stürmen <span class="muted">▼</span>
+        </div>
+        <div class="infoBody" id="info2">
+          <ul>
+            <li><b>Reset</b> = Situation neu bewerten, Abstand nehmen, neue Ansage.</li>
+            <li><b>Stürmen</b> nur nach Befehl / Freigabe (Leitung/Dispatch).</li>
+            <li>Priorität: <b>Eigenschutz</b>, <b>Funk</b>, <b>Beweissicherung</b>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div class="infoBlock">
+        <div class="infoTitle" data-toggle="info3">
+          Durchführung <span class="muted">▼</span>
+        </div>
+        <div class="infoBody" id="info3">
+          <ul>
+            <li>Treffpunkt / Briefing → Rollenverteilung.</li>
+            <li>Perimeter sichern → Zugriff / Festnahmen.</li>
+            <li>Rechte vorlesen → Transport / Bericht.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div class="muted">
+        Tipp: Du kannst diese Infotexte jederzeit in der index.html ändern – nur dieser Block hier.
+      </div>
+    </div>
+  </section>
+
 </div>
 
+<!-- Lightbox -->
 <div class="lightbox" id="lightbox">
   <div class="topbar">
     <div class="btn" id="lbTitle">—</div>
@@ -178,21 +297,18 @@
 </div>
 
 <script>
-  /* ✅ HIER EINTRAGEN */
-  const OWNER = "Firat0095";
-  const REPO  = "Sheriff--Routen"; // genau wie dein Repo heißt
-
-  const icons = {
-    "Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪",
-    "Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"
-  };
+  // Icons + Reihenfolge
+  const icons = {"Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪","Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"};
   const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt","Sonstiges"];
 
+  // DOM
   const elGroups = document.getElementById("groups");
   const elSearch = document.getElementById("search");
   const elContent = document.getElementById("content");
-  const elStatus = document.getElementById("status");
+  const elTitle = document.getElementById("currentTitle");
+  const elSub = document.getElementById("currentSub");
 
+  // Lightbox DOM
   const lightbox = document.getElementById("lightbox");
   const lbImg = document.getElementById("lbImg");
   const lbTitle = document.getElementById("lbTitle");
@@ -202,9 +318,10 @@
   const zoomOutBtn = document.getElementById("zoomOut");
   const zoomResetBtn = document.getElementById("zoomReset");
 
+  // State
   let groupedClean = [];
   let collapsed = new Set();
-  let active = {group:null, file:null};
+  let activeFile = null;
   let zoom = 1;
 
   function normKey(s){
@@ -212,14 +329,9 @@
       .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
       .replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
   }
-
   function niceNameFromFile(filename){
-    // "Methroute_4002.png" -> "Methroute 4002"
-    let name = filename.replace(/\.[^.]+$/,"");
-    name = name.replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
-    return name;
+    return filename.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
   }
-
   function categoryFromName(name){
     const n = normKey(name);
     if (n.includes("weed")) return "Weed";
@@ -231,55 +343,65 @@
     return "Sonstiges";
   }
 
+  // Lightbox zoom: NIE „nur Hälfte“
   function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
-
   function fitZoomLimited(){
     const rect = lbStage.getBoundingClientRect();
     const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
     if(!iw || !ih){ zoom = 0.9; applyZoom(); return; }
     const scale = Math.min((rect.width * 0.92) / iw, (rect.height * 0.92) / ih);
-    zoom = Math.min(1.0, scale);   // nie übergroß beim Öffnen
+    zoom = Math.min(1.0, scale);     // beim Öffnen nie größer als 100%
     applyZoom();
     lbStage.scrollLeft = 0; lbStage.scrollTop = 0;
   }
-
   function openLightbox(src, title){
     lbImg.src = src;
     lbTitle.textContent = title;
     lightbox.classList.add("open");
-    zoom = 0.95; // leicht größer
+    zoom = 0.95;                     // bisschen größer, aber safe
     lbImg.onload = () => fitZoomLimited();
   }
   function closeLightbox(){ lightbox.classList.remove("open"); lbImg.src=""; }
-
   function stepZoom(d){
-    zoom = Math.max(0.25, Math.min(1.6, zoom + d)); // begrenzt => nie “nur Hälfte”
+    zoom = Math.max(0.25, Math.min(1.6, zoom + d)); // begrenzt
     applyZoom();
   }
-
-  zoomInBtn.onclick  = ()=> stepZoom(0.10);
+  zoomInBtn.onclick = ()=> stepZoom(0.10);
   zoomOutBtn.onclick = ()=> stepZoom(-0.10);
   zoomResetBtn.onclick = ()=> fitZoomLimited();
   lbClose.onclick = closeLightbox;
   lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
   document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
 
-  function openRoute(item){
-    active = {group:item.group, file:item.file};
+  // GitHub Pages Auto Owner/Repo
+  function inferOwnerRepo(){
+    const host = window.location.hostname.toLowerCase();
+    const path = window.location.pathname.replace(/^\/+/, "").split("/").filter(Boolean);
+
+    if(host.endsWith(".github.io")){
+      const owner = host.split(".github.io")[0];
+      const repo = path[0] || "";
+      return { owner, repo };
+    }
+    return { owner: "Firat0095", repo: "Sheriff--Routen" };
+  }
+
+  function openRoute(it){
+    activeFile = it.file;
     render(elSearch.value);
+
+    elTitle.textContent = it.name;
+    elSub.textContent = it.group;
 
     elContent.innerHTML = "";
     const img = document.createElement("img");
     img.className = "preview";
-    img.src = item.file;
-    img.alt = item.name;
-    img.onclick = ()=> openLightbox(item.file, item.name);
-
+    img.src = it.file;
+    img.alt = it.name;
+    img.onclick = ()=> openLightbox(it.file, it.name);
     img.onerror = ()=> {
-      elContent.innerHTML = `<div class="hint">❌ Bild kann nicht geladen werden:<br><b>${item.file}</b><br>
-      Prüfe, ob es wirklich im Repo unter <b>/images/</b> liegt.</div>`;
+      elContent.innerHTML = `<div class="hint">❌ Bild lädt nicht: <b>${it.file}</b><br>Liegt es wirklich im Ordner <b>/images/</b>?</div>`;
     };
-
     elContent.appendChild(img);
   }
 
@@ -294,7 +416,17 @@
     elGroups.innerHTML = "";
 
     groupedClean.forEach(g=>{
-      const items = g.items.filter(it => !filter || it.name.toLowerCase().includes(filter));
+      // extra harte Dedupe beim Rendern
+      const local = new Set();
+      const items = g.items
+        .filter(it => !filter || it.name.toLowerCase().includes(filter))
+        .filter(it => {
+          const k = normKey(it.name) + "||" + it.file.toLowerCase();
+          if(local.has(k)) return false;
+          local.add(k);
+          return true;
+        });
+
       if(filter && items.length===0) return;
 
       const wrap = document.createElement("div");
@@ -312,8 +444,7 @@
 
       items.forEach(it=>{
         const btn = document.createElement("div");
-        const isActive = (active.file === it.file);
-        btn.className = "item" + (isActive ? " active" : "");
+        btn.className = "item" + (activeFile === it.file ? " active" : "");
         btn.innerHTML = `<span>${it.name}</span><small>▶</small>`;
         btn.onclick = ()=> openRoute(it);
         body.appendChild(btn);
@@ -333,7 +464,8 @@
 
   async function loadFromGitHub(){
     try{
-      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/images`;
+      const { owner, repo } = inferOwnerRepo();
+      const url = `https://api.github.com/repos/${owner}/${repo}/contents/images`;
       const res = await fetch(url, {headers: {"Accept":"application/vnd.github+json"}});
       if(!res.ok) throw new Error(`GitHub API Fehler: ${res.status}`);
 
@@ -343,51 +475,56 @@
         .filter(n => /\.(png|jpg|jpeg|webp)$/i.test(n));
 
       if(files.length === 0){
-        elStatus.textContent = "Keine Bilder im /images/ Ordner gefunden.";
+        elGroups.innerHTML = `<div class="hint">Keine Bilder im <b>/images</b> Ordner gefunden.</div>`;
         return;
       }
 
-      // build items
-      const allItems = files.map(fn=>{
+      const all = files.map(fn=>{
         const name = niceNameFromFile(fn);
         const group = categoryFromName(name);
         return { group, name, file: `images/${encodeURIComponent(fn)}` };
       });
 
-      // GLOBAL DEDUPE
-      const seenN = new Set();
-      const seenF = new Set();
+      // GLOBAL DEDUPE (Name ODER Datei) + Meth Detail raus
+      const seenName = new Set();
+      const seenFile = new Set();
       const deduped = [];
-      for(const it of allItems){
+      for(const it of all){
         const nk = normKey(it.name);
-        const fk = it.file.toLowerCase().trim();
-        if(seenN.has(nk) || seenF.has(fk)) continue;
-        seenN.add(nk); seenF.add(fk);
+        const fk = it.file.toLowerCase();
+        if(nk.includes("detail")) continue;
+        if(seenName.has(nk) || seenFile.has(fk)) continue;
+        seenName.add(nk); seenFile.add(fk);
         deduped.push(it);
       }
 
-      // group + sort
+      // Gruppieren + sortieren
       const map = {};
-      for(const it of deduped){
-        (map[it.group] ||= []).push(it);
-      }
-      for(const g of Object.keys(map)){
-        map[g].sort((a,b)=> a.name.localeCompare(b.name, "de", {sensitivity:"base"}));
-      }
+      for(const it of deduped) (map[it.group] ||= []).push(it);
+      Object.keys(map).forEach(g => map[g].sort((a,b)=> a.name.localeCompare(b.name,"de",{sensitivity:"base"})));
 
       groupedClean = order
-        .filter(g => map[g] && map[g].length)
-        .map(g => ({group:g, items:map[g]}));
+        .filter(g => map[g]?.length)
+        .map(g => ({group:g, items: map[g]}));
 
-      elStatus.remove();
       render("");
-    }catch(err){
-      elStatus.textContent = "Fehler beim Laden aus GitHub. Prüfe OWNER/REPO oben im Code.";
-      console.error(err);
+    }catch(e){
+      elGroups.innerHTML = `<div class="hint">Fehler beim Laden. Öffnest du die Seite über <b>GitHub Pages</b>?</div>`;
+      console.error(e);
     }
   }
 
-  elSearch.addEventListener("input", ()=> render(elSearch.value));
+  // Info-Leiste: einklappbar
+  document.addEventListener("click", (e)=>{
+    const t = e.target.closest("[data-toggle]");
+    if(!t) return;
+    const id = t.getAttribute("data-toggle");
+    const body = document.getElementById(id);
+    if(!body) return;
+    body.style.display = (body.style.display === "none") ? "block" : "none";
+  });
+
+  elSearch.addEventListener("input", ()=>render(elSearch.value));
   loadFromGitHub();
 </script>
 </body>
