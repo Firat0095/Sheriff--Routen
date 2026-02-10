@@ -8,7 +8,7 @@
 <style>
   :root{
     --bg:#0e1014; --panel:#151a22; --border:#232a36; --text:#eaeaea; --muted:#9aa4b2;
-    --accent:#3b82f6;
+    --accent:#3b82f6; --ok:#22c55e;
   }
   *{box-sizing:border-box}
   body{
@@ -64,18 +64,16 @@
     border-bottom:1px solid var(--border);
     background:#101522;
   }
-  .brand{
-    display:flex;align-items:center;gap:10px;min-width:0;
-  }
+  .brand{display:flex;align-items:center;gap:10px;min-width:0;}
   .mark{
     width:34px;height:34px;border-radius:10px;
     border:1px solid var(--border);
-    display:grid;place-items:center;background:#0f131b;
-    flex:0 0 auto;
+    display:grid;place-items:center;background:#0f131b;flex:0 0 auto;
   }
   .brandTitle{
     font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
+  .subRight{color:var(--muted);font-size:12px;white-space:nowrap}
 
   .searchWrap{ padding:12px 14px; border-bottom:1px solid var(--border); }
   .search{
@@ -105,23 +103,68 @@
   .item:hover{filter:brightness(1.08);}
   .item.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,.25) inset;}
   .item small{color:var(--muted);}
-
-  /* Viewer (Mitte) */
-  .viewerInner{ padding:14px; }
-  img.preview{
-    width:100%;
-    height:auto;
-    border-radius:14px;
-    border:1px solid var(--border);
-    background:#0b0e13;
-    cursor:zoom-in;
+  .statusBadge{
+    font-size:12px; padding:2px 8px; border-radius:999px;
+    border:1px solid var(--border); color:var(--muted);
   }
+  .statusBadge.ok{
+    border-color:rgba(34,197,94,.45);
+    color:var(--ok);
+  }
+
+  /* Viewer Mitte */
+  .viewerInner{ padding:14px; display:flex; flex-direction:column; gap:12px; min-height:0; }
+
+  /* WICHTIG: Bild NICHT zu groß -> passt in den Viewer */
+  .previewWrap{
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:#0b0e13;
+    padding:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:260px;
+    max-height:calc(100vh - 180px); /* begrenzt! */
+    overflow:hidden;
+  }
+  img.preview{
+    max-width:100%;
+    max-height:calc(100vh - 220px); /* begrenzt! */
+    width:auto;
+    height:auto;
+    object-fit:contain;
+    border-radius:12px;
+    cursor:zoom-in;
+    display:block;
+  }
+
   .hint{
     color:var(--muted);
     font-size:14px;
     padding:12px;
     border:1px dashed var(--border);
     border-radius:14px;
+  }
+
+  /* Buttons */
+  .btn{
+    background:rgba(21,26,34,.92);
+    border:1px solid rgba(255,255,255,.14);
+    color:var(--text);
+    padding:8px 10px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:12px;
+    user-select:none;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn.primary{border-color:rgba(59,130,246,.5);}
+  .btn.ok{border-color:rgba(34,197,94,.55); color:var(--ok);}
+  .btn.danger{border-color:rgba(239,68,68,.55); color:#fecaca;}
+
+  .viewerActions{
+    display:flex; gap:8px; flex-wrap:wrap;
   }
 
   /* Info Panel rechts */
@@ -132,13 +175,12 @@
     cursor:pointer; user-select:none;
   }
   .infoBody{ padding:10px 12px; display:block; }
-  .infoBody ul{ margin:0; padding-left:18px; color:var(--text); }
-  .infoBody li{ margin:6px 0; color:var(--text); }
-  .muted{ color:var(--muted); font-size:12px; line-height:1.4; }
+  .infoBody ul{ margin:0; padding-left:18px; }
+  .infoBody li{ margin:6px 0; }
 
-  /* Unterschrift unten */
+  /* Unterschrift */
   .signature{
-    margin-top:12px;
+    margin-top:auto;
     padding:10px 12px;
     color:var(--muted);
     font-size:12px;
@@ -154,12 +196,6 @@
     display:flex; justify-content:space-between; align-items:center; gap:10px;
     z-index:10000;
   }
-  .lightbox .btn{
-    background:rgba(21,26,34,.92);
-    border:1px solid rgba(255,255,255,.12);
-    color:white; padding:8px 10px; border-radius:12px;
-    cursor:pointer; font-size:12px; user-select:none;
-  }
   .lightbox .stage{position:absolute; inset:0; overflow:auto; padding:70px 24px 24px;}
   .lightbox .stageInner{width:max-content; height:max-content; margin:auto;}
   .lightbox img{
@@ -171,6 +207,7 @@
   @media(max-width:1100px){
     .app{grid-template-columns:1fr; height:auto;}
     .panel{min-height:unset;}
+    .previewWrap, img.preview{max-height:65vh;}
   }
 </style>
 </head>
@@ -179,13 +216,13 @@
 <div class="app">
 
   <!-- Sidebar -->
-  <section class="panel" id="leftPanel">
+  <section class="panel">
     <div class="panelHeader">
       <div class="brand">
         <div class="mark">⭐</div>
         <h1 class="brandTitle">Standorte & Routen</h1>
       </div>
-      <div class="muted">LIVE</div>
+      <div class="subRight">SD</div>
     </div>
 
     <div class="searchWrap">
@@ -194,42 +231,40 @@
 
     <div class="scroll" id="groups"></div>
 
-    <!-- UNTERSCHRIFT -->
+    <!-- Unterschrift (bleibt drin) -->
     <div class="signature" id="signature">
       — Sheriff Department • Interne Übersicht —
     </div>
   </section>
 
   <!-- Viewer -->
-  <section class="panel" id="viewerPanel">
+  <section class="panel">
     <div class="panelHeader">
       <div class="brand">
         <div class="mark">🗺️</div>
         <h1 class="brandTitle" id="currentTitle">Vorschau</h1>
       </div>
-      <div class="muted" id="currentSub">Klick links eine Route</div>
+      <div class="subRight" id="currentSub">—</div>
     </div>
+
     <div class="viewerInner" id="content">
       <div class="hint">Links auswählen → rechts öffnet sich das Bild. (Klick aufs Bild = Zoom)</div>
     </div>
   </section>
 
   <!-- Info rechts -->
-  <section class="panel" id="infoPanel">
+  <section class="panel">
     <div class="panelHeader">
       <div class="brand">
         <div class="mark">ℹ️</div>
         <h1 class="brandTitle">Info & Ablauf</h1>
       </div>
-      <div class="muted">PD/SO</div>
+      <div class="subRight">SD</div>
     </div>
 
-    <div class="scroll" id="infoScroll">
-      <!-- ✅ HIER DEINE INFOS REINSCHREIBEN -->
+    <div class="scroll">
       <div class="infoBlock">
-        <div class="infoTitle" data-toggle="info1">
-          Allgemein <span class="muted">▼</span>
-        </div>
+        <div class="infoTitle" data-toggle="info1">Allgemein <span class="subRight">▼</span></div>
         <div class="infoBody" id="info1">
           <ul>
             <li>Nur IC / Ingame nutzen.</li>
@@ -241,14 +276,12 @@
       <div style="height:10px"></div>
 
       <div class="infoBlock">
-        <div class="infoTitle" data-toggle="info2">
-          Reset / Stürmen <span class="muted">▼</span>
-        </div>
+        <div class="infoTitle" data-toggle="info2">Reset / Stürmen <span class="subRight">▼</span></div>
         <div class="infoBody" id="info2">
           <ul>
             <li><b>Reset</b> = Situation neu bewerten, Abstand nehmen, neue Ansage.</li>
-            <li><b>Stürmen</b> nur nach Befehl / Freigabe (Leitung/Dispatch).</li>
-            <li>Priorität: <b>Eigenschutz</b>, <b>Funk</b>, <b>Beweissicherung</b>.</li>
+            <li><b>Stürmen</b> nur nach Befehl / Freigabe.</li>
+            <li>Priorität: <b>Eigenschutz</b> → <b>Funk</b> → <b>Beweissicherung</b>.</li>
           </ul>
         </div>
       </div>
@@ -256,22 +289,21 @@
       <div style="height:10px"></div>
 
       <div class="infoBlock">
-        <div class="infoTitle" data-toggle="info3">
-          Durchführung <span class="muted">▼</span>
-        </div>
+        <div class="infoTitle" data-toggle="info3">Durchführung <span class="subRight">▼</span></div>
         <div class="infoBody" id="info3">
           <ul>
-            <li>Treffpunkt / Briefing → Rollenverteilung.</li>
-            <li>Perimeter sichern → Zugriff / Festnahmen.</li>
-            <li>Rechte vorlesen → Transport / Bericht.</li>
+            <li>Briefing → Rollenverteilung → Perimeter.</li>
+            <li>Zugriff/Festnahmen → Rechte → Transport.</li>
+            <li>Bericht / Evidence sichern.</li>
           </ul>
         </div>
       </div>
 
-      <div style="height:10px"></div>
+      <div style="height:14px"></div>
 
-      <div class="muted">
-        Tipp: Du kannst diese Infotexte jederzeit in der index.html ändern – nur dieser Block hier.
+      <div class="hint" style="margin:0;">
+        <b>Status:</b> ✅ = bereits gestürmt. <br>
+        Du kannst pro Route „Gestürmt“ umschalten oder resetten.
       </div>
     </div>
   </section>
@@ -297,7 +329,7 @@
 </div>
 
 <script>
-  // Icons + Reihenfolge
+  // Kategorien / Icons
   const icons = {"Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪","Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"};
   const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt","Sonstiges"];
 
@@ -321,9 +353,33 @@
   // State
   let groupedClean = [];
   let collapsed = new Set();
-  let activeFile = null;
+  let activeItem = null;
   let zoom = 1;
 
+  // ===== Status Speicherung (Gestürmt) =====
+  const STORAGE_KEY = "sd_raids_status_v1";
+  function loadStatus(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+    catch{ return {}; }
+  }
+  function saveStatus(obj){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+  }
+  function isStormed(file){
+    const s = loadStatus();
+    return !!s[file];
+  }
+  function setStormed(file, val){
+    const s = loadStatus();
+    if(val) s[file] = true;
+    else delete s[file];
+    saveStatus(s);
+  }
+  function resetAllStormed(){
+    saveStatus({});
+  }
+
+  // ===== Helpers =====
   function normKey(s){
     return (s||"").toLowerCase().trim()
       .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
@@ -342,42 +398,9 @@
     if (n.includes("schwarzmarkt")) return "Schwarzmarkt";
     return "Sonstiges";
   }
-
-  // Lightbox zoom: NIE „nur Hälfte“
-  function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
-  function fitZoomLimited(){
-    const rect = lbStage.getBoundingClientRect();
-    const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
-    if(!iw || !ih){ zoom = 0.9; applyZoom(); return; }
-    const scale = Math.min((rect.width * 0.92) / iw, (rect.height * 0.92) / ih);
-    zoom = Math.min(1.0, scale);     // beim Öffnen nie größer als 100%
-    applyZoom();
-    lbStage.scrollLeft = 0; lbStage.scrollTop = 0;
-  }
-  function openLightbox(src, title){
-    lbImg.src = src;
-    lbTitle.textContent = title;
-    lightbox.classList.add("open");
-    zoom = 0.95;                     // bisschen größer, aber safe
-    lbImg.onload = () => fitZoomLimited();
-  }
-  function closeLightbox(){ lightbox.classList.remove("open"); lbImg.src=""; }
-  function stepZoom(d){
-    zoom = Math.max(0.25, Math.min(1.6, zoom + d)); // begrenzt
-    applyZoom();
-  }
-  zoomInBtn.onclick = ()=> stepZoom(0.10);
-  zoomOutBtn.onclick = ()=> stepZoom(-0.10);
-  zoomResetBtn.onclick = ()=> fitZoomLimited();
-  lbClose.onclick = closeLightbox;
-  lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
-  document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
-
-  // GitHub Pages Auto Owner/Repo
   function inferOwnerRepo(){
     const host = window.location.hostname.toLowerCase();
     const path = window.location.pathname.replace(/^\/+/, "").split("/").filter(Boolean);
-
     if(host.endsWith(".github.io")){
       const owner = host.split(".github.io")[0];
       const repo = path[0] || "";
@@ -386,25 +409,102 @@
     return { owner: "Firat0095", repo: "Sheriff--Routen" };
   }
 
-  function openRoute(it){
-    activeFile = it.file;
-    render(elSearch.value);
+  // ===== Lightbox Zoom (Fit, nicht übertrieben) =====
+  function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
+  function fitZoomLimited(){
+    const rect = lbStage.getBoundingClientRect();
+    const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
+    if(!iw || !ih){ zoom = 0.9; applyZoom(); return; }
+    const scale = Math.min((rect.width * 0.92) / iw, (rect.height * 0.92) / ih);
+    zoom = Math.min(1.0, scale); // nie größer als 100% beim Öffnen
+    applyZoom();
+    lbStage.scrollLeft = 0; lbStage.scrollTop = 0;
+  }
+  function openLightbox(src, title){
+    lbImg.src = src;
+    lbTitle.textContent = title;
+    lightbox.classList.add("open");
+    zoom = 0.95;
+    lbImg.onload = () => fitZoomLimited();
+  }
+  function closeLightbox(){ lightbox.classList.remove("open"); lbImg.src=""; }
+  function stepZoom(d){
+    zoom = Math.max(0.25, Math.min(1.6, zoom + d));
+    applyZoom();
+  }
+  zoomInBtn.onclick  = ()=> stepZoom(0.10);
+  zoomOutBtn.onclick = ()=> stepZoom(-0.10);
+  zoomResetBtn.onclick = ()=> fitZoomLimited();
+  lbClose.onclick = closeLightbox;
+  lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
 
-    elTitle.textContent = it.name;
-    elSub.textContent = it.group;
+  // ===== Viewer Render =====
+  function renderViewer(item){
+    activeItem = item;
+
+    elTitle.textContent = item.name;
+    elSub.textContent = item.group;
+
+    const stormed = isStormed(item.file);
 
     elContent.innerHTML = "";
+
+    // Actions
+    const actions = document.createElement("div");
+    actions.className = "viewerActions";
+
+    const toggleBtn = document.createElement("button");
+    toggleBtn.className = "btn " + (stormed ? "ok" : "primary");
+    toggleBtn.textContent = stormed ? "✅ Gestürmt: JA (umschalten)" : "⛔ Gestürmt: NEIN (umschalten)";
+    toggleBtn.onclick = () => {
+      setStormed(item.file, !isStormed(item.file));
+      renderViewer(item);
+      render(elSearch.value);
+    };
+
+    const resetBtn = document.createElement("button");
+    resetBtn.className = "btn danger";
+    resetBtn.textContent = "Reset (nur diese Route)";
+    resetBtn.onclick = () => {
+      setStormed(item.file, false);
+      renderViewer(item);
+      render(elSearch.value);
+    };
+
+    const resetAllBtn = document.createElement("button");
+    resetAllBtn.className = "btn danger";
+    resetAllBtn.textContent = "Reset ALL";
+    resetAllBtn.onclick = () => {
+      resetAllStormed();
+      renderViewer(item);
+      render(elSearch.value);
+    };
+
+    actions.appendChild(toggleBtn);
+    actions.appendChild(resetBtn);
+    actions.appendChild(resetAllBtn);
+
+    // Image wrap (NICHT zu groß)
+    const wrap = document.createElement("div");
+    wrap.className = "previewWrap";
+
     const img = document.createElement("img");
     img.className = "preview";
-    img.src = it.file;
-    img.alt = it.name;
-    img.onclick = ()=> openLightbox(it.file, it.name);
+    img.src = item.file;
+    img.alt = item.name;
+    img.onclick = ()=> openLightbox(item.file, item.name);
     img.onerror = ()=> {
-      elContent.innerHTML = `<div class="hint">❌ Bild lädt nicht: <b>${it.file}</b><br>Liegt es wirklich im Ordner <b>/images/</b>?</div>`;
+      wrap.innerHTML = `<div class="hint">❌ Bild lädt nicht: <b>${item.file}</b><br>Prüfe, ob es im Ordner <b>/images/</b> liegt.</div>`;
     };
-    elContent.appendChild(img);
+
+    wrap.appendChild(img);
+
+    elContent.appendChild(actions);
+    elContent.appendChild(wrap);
   }
 
+  // ===== Sidebar Render =====
   function toggleGroup(g){
     if(collapsed.has(g)) collapsed.delete(g);
     else collapsed.add(g);
@@ -416,7 +516,6 @@
     elGroups.innerHTML = "";
 
     groupedClean.forEach(g=>{
-      // extra harte Dedupe beim Rendern
       const local = new Set();
       const items = g.items
         .filter(it => !filter || it.name.toLowerCase().includes(filter))
@@ -444,9 +543,14 @@
 
       items.forEach(it=>{
         const btn = document.createElement("div");
-        btn.className = "item" + (activeFile === it.file ? " active" : "");
-        btn.innerHTML = `<span>${it.name}</span><small>▶</small>`;
-        btn.onclick = ()=> openRoute(it);
+        const active = activeItem && activeItem.file === it.file;
+        btn.className = "item" + (active ? " active" : "");
+
+        const stormed = isStormed(it.file);
+        const badge = `<span class="statusBadge ${stormed ? "ok" : ""}">${stormed ? "✅ gestürmt" : "— offen"}</span>`;
+
+        btn.innerHTML = `<span>${it.name}</span>${badge}`;
+        btn.onclick = ()=> { renderViewer(it); render(elSearch.value); };
         body.appendChild(btn);
       });
 
@@ -462,7 +566,9 @@
     }
   }
 
+  // ===== Load images from GitHub /images =====
   async function loadFromGitHub(){
+    elGroups.innerHTML = `<div class="hint">Lade Bilder aus GitHub…</div>`;
     try{
       const { owner, repo } = inferOwnerRepo();
       const url = `https://api.github.com/repos/${owner}/${repo}/contents/images`;
@@ -475,7 +581,7 @@
         .filter(n => /\.(png|jpg|jpeg|webp)$/i.test(n));
 
       if(files.length === 0){
-        elGroups.innerHTML = `<div class="hint">Keine Bilder im <b>/images</b> Ordner gefunden.</div>`;
+        elGroups.innerHTML = `<div class="hint">Keine Bilder im Ordner <b>/images</b> gefunden.</div>`;
         return;
       }
 
@@ -485,7 +591,7 @@
         return { group, name, file: `images/${encodeURIComponent(fn)}` };
       });
 
-      // GLOBAL DEDUPE (Name ODER Datei) + Meth Detail raus
+      // GLOBAL DEDUPE + Meth Detail raus
       const seenName = new Set();
       const seenFile = new Set();
       const deduped = [];
@@ -498,7 +604,7 @@
         deduped.push(it);
       }
 
-      // Gruppieren + sortieren
+      // Group + sort
       const map = {};
       for(const it of deduped) (map[it.group] ||= []).push(it);
       Object.keys(map).forEach(g => map[g].sort((a,b)=> a.name.localeCompare(b.name,"de",{sensitivity:"base"})));
@@ -509,12 +615,12 @@
 
       render("");
     }catch(e){
-      elGroups.innerHTML = `<div class="hint">Fehler beim Laden. Öffnest du die Seite über <b>GitHub Pages</b>?</div>`;
+      elGroups.innerHTML = `<div class="hint">Fehler beim Laden. Öffne die Seite über <b>GitHub Pages</b>.</div>`;
       console.error(e);
     }
   }
 
-  // Info-Leiste: einklappbar
+  // Info: einklappbar
   document.addEventListener("click", (e)=>{
     const t = e.target.closest("[data-toggle]");
     if(!t) return;
@@ -524,7 +630,7 @@
     body.style.display = (body.style.display === "none") ? "block" : "none";
   });
 
-  elSearch.addEventListener("input", ()=>render(elSearch.value));
+  elSearch.addEventListener("input", ()=> render(elSearch.value));
   loadFromGitHub();
 </script>
 </body>
