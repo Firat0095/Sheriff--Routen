@@ -11,12 +11,8 @@
     --accent:#3b82f6; --ok:#22c55e;
   }
   *{box-sizing:border-box}
-  body{
-    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background:var(--bg); color:var(--text);
-  }
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);}
 
-  /* GOLDENER, GROßER SHERIFF-STERN MIT GLOW */
   body::before{
     content:""; position:fixed; inset:0; pointer-events:none;
     background-repeat:no-repeat; background-position:center;
@@ -35,7 +31,6 @@
 </g></svg>');
   }
 
-  /* Layout: links Liste, Mitte Bild, rechts Info */
   .app{
     display:grid;
     grid-template-columns:360px 1fr 380px;
@@ -43,7 +38,6 @@
     gap:14px;
     padding:14px;
   }
-
   .panel{
     background:rgba(21,26,34,.92);
     backdrop-filter: blur(6px);
@@ -54,7 +48,6 @@
     flex-direction:column;
     min-height:0;
   }
-
   .panelHeader{
     display:flex;
     align-items:center;
@@ -70,9 +63,7 @@
     border:1px solid var(--border);
     display:grid;place-items:center;background:#0f131b;flex:0 0 auto;
   }
-  .brandTitle{
-    font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  }
+  .brandTitle{font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .subRight{color:var(--muted);font-size:12px;white-space:nowrap}
 
   .searchWrap{ padding:12px 14px; border-bottom:1px solid var(--border); }
@@ -84,6 +75,25 @@
 
   .scroll{ overflow:auto; padding:12px 14px; min-height:0; }
 
+  /* Gesamt Counter Box */
+  .summary{
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:#0f131b;
+    padding:10px 12px;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .summary b{font-size:13px;}
+  .pill{
+    font-size:12px; padding:2px 8px; border-radius:999px;
+    border:1px solid var(--border); color:var(--muted);
+  }
+  .pill.ok{border-color:rgba(34,197,94,.45); color:var(--ok);}
+
   .group{margin-top:12px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#0f131b;}
   .group:first-child{margin-top:0;}
   .groupHeader{
@@ -92,6 +102,7 @@
   }
   .groupHeader .left{display:flex;align-items:center;gap:8px;}
   .groupHeader b{font-size:13px;}
+
   .badgeCount{color:var(--muted);font-size:12px;}
 
   .groupBody{padding:10px;display:flex;flex-direction:column;gap:8px;}
@@ -102,20 +113,14 @@
   }
   .item:hover{filter:brightness(1.08);}
   .item.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,.25) inset;}
-  .item small{color:var(--muted);}
   .statusBadge{
     font-size:12px; padding:2px 8px; border-radius:999px;
     border:1px solid var(--border); color:var(--muted);
   }
-  .statusBadge.ok{
-    border-color:rgba(34,197,94,.45);
-    color:var(--ok);
-  }
+  .statusBadge.ok{border-color:rgba(34,197,94,.45); color:var(--ok);}
 
   /* Viewer Mitte */
   .viewerInner{ padding:14px; display:flex; flex-direction:column; gap:12px; min-height:0; }
-
-  /* WICHTIG: Bild NICHT zu groß -> passt in den Viewer */
   .previewWrap{
     border:1px solid var(--border);
     border-radius:14px;
@@ -125,14 +130,13 @@
     align-items:center;
     justify-content:center;
     min-height:260px;
-    max-height:calc(100vh - 180px); /* begrenzt! */
+    max-height:calc(100vh - 180px);
     overflow:hidden;
   }
   img.preview{
     max-width:100%;
-    max-height:calc(100vh - 220px); /* begrenzt! */
-    width:auto;
-    height:auto;
+    max-height:calc(100vh - 220px);
+    width:auto;height:auto;
     object-fit:contain;
     border-radius:12px;
     cursor:zoom-in;
@@ -147,7 +151,6 @@
     border-radius:14px;
   }
 
-  /* Buttons */
   .btn{
     background:rgba(21,26,34,.92);
     border:1px solid rgba(255,255,255,.14);
@@ -162,12 +165,9 @@
   .btn.primary{border-color:rgba(59,130,246,.5);}
   .btn.ok{border-color:rgba(34,197,94,.55); color:var(--ok);}
   .btn.danger{border-color:rgba(239,68,68,.55); color:#fecaca;}
+  .viewerActions{display:flex; gap:8px; flex-wrap:wrap;}
 
-  .viewerActions{
-    display:flex; gap:8px; flex-wrap:wrap;
-  }
-
-  /* Info Panel rechts */
+  /* Info rechts */
   .infoBlock{ border:1px solid var(--border); border-radius:14px; background:#0f131b; overflow:hidden; }
   .infoTitle{
     margin:0; padding:10px 12px; background:#101522; border-bottom:1px solid var(--border);
@@ -178,7 +178,6 @@
   .infoBody ul{ margin:0; padding-left:18px; }
   .infoBody li{ margin:6px 0; }
 
-  /* Unterschrift */
   .signature{
     margin-top:auto;
     padding:10px 12px;
@@ -229,9 +228,16 @@
       <input id="search" class="search" placeholder="Suchen…">
     </div>
 
-    <div class="scroll" id="groups"></div>
+    <div class="scroll">
+      <!-- Gesamt Counter -->
+      <div class="summary">
+        <b>Gesamt</b>
+        <span class="pill" id="overallPill">—</span>
+      </div>
 
-    <!-- Unterschrift (bleibt drin) -->
+      <div id="groups"></div>
+    </div>
+
     <div class="signature" id="signature">
       — Sheriff Department • Interne Übersicht —
     </div>
@@ -302,8 +308,7 @@
       <div style="height:14px"></div>
 
       <div class="hint" style="margin:0;">
-        <b>Status:</b> ✅ = bereits gestürmt. <br>
-        Du kannst pro Route „Gestürmt“ umschalten oder resetten.
+        <b>Status:</b> ✅ = bereits gestürmt • — = offen
       </div>
     </div>
   </section>
@@ -329,18 +334,16 @@
 </div>
 
 <script>
-  // Kategorien / Icons
   const icons = {"Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪","Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"};
   const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt","Sonstiges"];
 
-  // DOM
   const elGroups = document.getElementById("groups");
   const elSearch = document.getElementById("search");
   const elContent = document.getElementById("content");
   const elTitle = document.getElementById("currentTitle");
   const elSub = document.getElementById("currentSub");
+  const overallPill = document.getElementById("overallPill");
 
-  // Lightbox DOM
   const lightbox = document.getElementById("lightbox");
   const lbImg = document.getElementById("lbImg");
   const lbTitle = document.getElementById("lbTitle");
@@ -350,34 +353,18 @@
   const zoomOutBtn = document.getElementById("zoomOut");
   const zoomResetBtn = document.getElementById("zoomReset");
 
-  // State
   let groupedClean = [];
   let collapsed = new Set();
   let activeItem = null;
   let zoom = 1;
 
-  // ===== Status Speicherung (Gestürmt) =====
-  const STORAGE_KEY = "sd_raids_status_v1";
-  function loadStatus(){
-    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
-    catch{ return {}; }
-  }
-  function saveStatus(obj){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
-  }
-  function isStormed(file){
-    const s = loadStatus();
-    return !!s[file];
-  }
-  function setStormed(file, val){
-    const s = loadStatus();
-    if(val) s[file] = true;
-    else delete s[file];
-    saveStatus(s);
-  }
-  function resetAllStormed(){
-    saveStatus({});
-  }
+  // ===== Status Speicherung =====
+  const STORAGE_KEY = "sd_raids_status_v2";
+  function loadStatus(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}"); }catch{ return {}; } }
+  function saveStatus(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
+  function isStormed(file){ const s=loadStatus(); return !!s[file]; }
+  function setStormed(file,val){ const s=loadStatus(); if(val) s[file]=true; else delete s[file]; saveStatus(s); }
+  function resetAllStormed(){ saveStatus({}); }
 
   // ===== Helpers =====
   function normKey(s){
@@ -409,14 +396,33 @@
     return { owner: "Firat0095", repo: "Sheriff--Routen" };
   }
 
-  // ===== Lightbox Zoom (Fit, nicht übertrieben) =====
+  // ===== Counter =====
+  function computeCounts(){
+    let total = 0, done = 0;
+    const perGroup = {};
+    for(const g of groupedClean){
+      const t = g.items.length;
+      const d = g.items.filter(it=>isStormed(it.file)).length;
+      perGroup[g.group] = { total:t, done:d };
+      total += t; done += d;
+    }
+    return { total, done, perGroup };
+  }
+
+  function updateSummaryUI(){
+    const { total, done } = computeCounts();
+    overallPill.textContent = `${done} / ${total} gestürmt`;
+    overallPill.className = "pill " + (total>0 && done===total ? "ok" : "");
+  }
+
+  // ===== Lightbox =====
   function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
   function fitZoomLimited(){
     const rect = lbStage.getBoundingClientRect();
     const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
     if(!iw || !ih){ zoom = 0.9; applyZoom(); return; }
     const scale = Math.min((rect.width * 0.92) / iw, (rect.height * 0.92) / ih);
-    zoom = Math.min(1.0, scale); // nie größer als 100% beim Öffnen
+    zoom = Math.min(1.0, scale);
     applyZoom();
     lbStage.scrollLeft = 0; lbStage.scrollTop = 0;
   }
@@ -439,18 +445,15 @@
   lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
   document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
 
-  // ===== Viewer Render =====
+  // ===== Viewer =====
   function renderViewer(item){
     activeItem = item;
-
     elTitle.textContent = item.name;
     elSub.textContent = item.group;
 
     const stormed = isStormed(item.file);
-
     elContent.innerHTML = "";
 
-    // Actions
     const actions = document.createElement("div");
     actions.className = "viewerActions";
 
@@ -485,7 +488,6 @@
     actions.appendChild(resetBtn);
     actions.appendChild(resetAllBtn);
 
-    // Image wrap (NICHT zu groß)
     const wrap = document.createElement("div");
     wrap.className = "previewWrap";
 
@@ -495,7 +497,7 @@
     img.alt = item.name;
     img.onclick = ()=> openLightbox(item.file, item.name);
     img.onerror = ()=> {
-      wrap.innerHTML = `<div class="hint">❌ Bild lädt nicht: <b>${item.file}</b><br>Prüfe, ob es im Ordner <b>/images/</b> liegt.</div>`;
+      wrap.innerHTML = `<div class="hint">❌ Bild lädt nicht: <b>${item.file}</b></div>`;
     };
 
     wrap.appendChild(img);
@@ -504,7 +506,7 @@
     elContent.appendChild(wrap);
   }
 
-  // ===== Sidebar Render =====
+  // ===== Sidebar =====
   function toggleGroup(g){
     if(collapsed.has(g)) collapsed.delete(g);
     else collapsed.add(g);
@@ -514,6 +516,8 @@
   function render(filterRaw=""){
     const filter = (filterRaw||"").trim().toLowerCase();
     elGroups.innerHTML = "";
+
+    const counts = computeCounts();
 
     groupedClean.forEach(g=>{
       const local = new Set();
@@ -533,7 +537,11 @@
 
       const header = document.createElement("div");
       header.className = "groupHeader";
-      header.innerHTML = `<div class="left"><span>${icons[g.group]||"📍"}</span><b>${g.group}</b></div><span class="badgeCount">${items.length}</span>`;
+
+      const cg = counts.perGroup[g.group] || {done:0,total:items.length};
+      const pill = `<span class="pill ${cg.total>0 && cg.done===cg.total ? "ok":""}">${cg.done}/${cg.total}</span>`;
+
+      header.innerHTML = `<div class="left"><span>${icons[g.group]||"📍"}</span><b>${g.group}</b></div><div style="display:flex;gap:8px;align-items:center">${pill}<span class="badgeCount">${items.length}</span></div>`;
       header.onclick = ()=> toggleGroup(g.group);
       wrap.appendChild(header);
 
@@ -564,9 +572,10 @@
       empty.textContent="Keine Treffer.";
       elGroups.appendChild(empty);
     }
+
+    updateSummaryUI();
   }
 
-  // ===== Load images from GitHub /images =====
   async function loadFromGitHub(){
     elGroups.innerHTML = `<div class="hint">Lade Bilder aus GitHub…</div>`;
     try{
@@ -591,7 +600,6 @@
         return { group, name, file: `images/${encodeURIComponent(fn)}` };
       });
 
-      // GLOBAL DEDUPE + Meth Detail raus
       const seenName = new Set();
       const seenFile = new Set();
       const deduped = [];
@@ -604,7 +612,6 @@
         deduped.push(it);
       }
 
-      // Group + sort
       const map = {};
       for(const it of deduped) (map[it.group] ||= []).push(it);
       Object.keys(map).forEach(g => map[g].sort((a,b)=> a.name.localeCompare(b.name,"de",{sensitivity:"base"})));
@@ -620,7 +627,7 @@
     }
   }
 
-  // Info: einklappbar
+  // Info einklappbar
   document.addEventListener("click", (e)=>{
     const t = e.target.closest("[data-toggle]");
     if(!t) return;
