@@ -13,7 +13,7 @@
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);}
 
-  /* GOLDENER, GROßER SHERIFF-STERN MIT GLOW */
+  /* Sheriff Stern */
   body::before{
     content:""; position:fixed; inset:0; pointer-events:none;
     background-repeat:no-repeat; background-position:center;
@@ -76,7 +76,6 @@
 
   .scroll{ overflow:auto; padding:12px 14px; min-height:0; }
 
-  /* Gesamt Counter Box */
   .summary{
     border:1px solid var(--border);
     border-radius:14px;
@@ -116,16 +115,14 @@
   .statusBadge{
     font-size:12px; padding:2px 8px; border-radius:999px;
     border:1px solid var(--border); color:var(--muted);
+    white-space:nowrap;
   }
   .statusBadge.ok{border-color:rgba(34,197,94,.45); color:var(--ok);}
 
-  /* Viewer Mitte */
+  /* Viewer */
   .viewerInner{ padding:14px; display:flex; flex-direction:column; gap:12px; min-height:0; }
-
-  /* ✅ OHNE schwarzen Untergrund */
   .previewWrap{
     border:none;
-    border-radius:0;
     background:transparent;
     padding:0;
     display:flex;
@@ -180,13 +177,29 @@
   .infoBody ul{ margin:0; padding-left:18px; }
   .infoBody li{ margin:6px 0; }
 
-  .signature{
-    margin-top:auto;
-    padding:10px 12px;
-    color:var(--muted);
-    font-size:12px;
-    border-top:1px solid var(--border);
-    text-align:center;
+  /* Profilbild unter Status */
+  .statusWithPic{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .profileWrap{
+    width:110px;height:110px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.12);
+    overflow:hidden;
+    background:rgba(0,0,0,.15);
+    box-shadow:
+      0 0 0 3px rgba(255,255,255,.06),
+      0 10px 35px rgba(0,0,0,.55);
+    flex:0 0 auto;
+  }
+  .profileWrap img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transform:translateY(4px); /* wirkt meist besser bei Ganzkörper */
   }
 
   /* Lightbox */
@@ -235,12 +248,7 @@
         <b>Gesamt</b>
         <span class="pill" id="overallPill">—</span>
       </div>
-
       <div id="groups"></div>
-    </div>
-
-    <div class="signature" id="signature">
-      — Sheriff Department • Interne Übersicht —
     </div>
   </section>
 
@@ -307,9 +315,18 @@
 
       <div style="height:14px"></div>
 
+      <!-- Status + Profilbild -->
       <div class="hint" style="margin:0;">
-        <b>Status:</b> ✅ = bereits gestürmt • — = offen
+        <div class="statusWithPic">
+          <div>
+            <b>Status:</b> ✅ = bereits gestürmt • — = offen
+          </div>
+          <div class="profileWrap" title="profil.png">
+            <img src="images/profil.png" alt="Profil">
+          </div>
+        </div>
       </div>
+
     </div>
   </section>
 
@@ -335,7 +352,7 @@
 
 <script>
   const icons = {"Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪","Waffen":"🔫","Schwarzmarkt":"🕸️"};
-  const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt"]; // ✅ Sonstiges weg
+  const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt"]; // Sonstiges weg
 
   const elGroups = document.getElementById("groups");
   const elSearch = document.getElementById("search");
@@ -358,15 +375,15 @@
   let activeItem = null;
   let zoom = 1;
 
-  // ===== Status Speicherung =====
-  const STORAGE_KEY = "sd_raids_status_v3";
+  // Status Speicherung
+  const STORAGE_KEY = "sd_raids_status_v_final";
   function loadStatus(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}"); }catch{ return {}; } }
   function saveStatus(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
   function isStormed(file){ const s=loadStatus(); return !!s[file]; }
   function setStormed(file,val){ const s=loadStatus(); if(val) s[file]=true; else delete s[file]; saveStatus(s); }
   function resetAllStormed(){ saveStatus({}); }
 
-  // ===== Helpers =====
+  // Helpers
   function normKey(s){
     return (s||"").toLowerCase().trim()
       .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
@@ -375,16 +392,70 @@
   function niceNameFromFile(filename){
     return filename.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
   }
+
+  // ✅ Route-Namen ohne Orte (dein Wunsch)
+  function simplifyDisplayName(raw){
+    const n = normKey(raw);
+
+    // Priorität: spezielle eindeutige
+    if(n.includes("waffenhersteller")) return "Waffenhersteller";
+    if(n.includes("waffenteile")) return "Waffenteile";
+    if(n.includes("schwarzmarkt")) return "Schwarzmarkt";
+    if(n.includes("lsd") && (n.includes("spot") || n.includes("punkt"))) return "LSD Spot";
+
+    // Drogen / Rollen
+    const hasWeed = n.includes("weed");
+    const hasMeth = n.includes("meth");
+    const hasKoks = n.includes("koks") || n.includes("kokain") || n.includes("coke");
+    const hasLsd  = n.includes("lsd");
+    const isVerkaeufer = n.includes("verkaeufer") || n.includes("verkaeuferin") || n.includes("dealer");
+    const isVerarbeiter = n.includes("verarbeiter") || n.includes("verarbeitung") || n.includes("verarbeite");
+    const isRoute = n.includes("route") || n.includes("routen");
+
+    if(hasWeed){
+      if(isVerarbeiter) return "Weed Verarbeiter";
+      if(isVerkaeufer) return "Weed Verkäufer";
+      if(isRoute) return "Weed Route";
+      return "Weed";
+    }
+    if(hasMeth){
+      if(isVerarbeiter) return "Meth Verarbeiter";
+      if(isVerkaeufer) return "Meth Verkäufer";
+      if(isRoute) return "Methroute";
+      return "Meth";
+    }
+    if(hasKoks){
+      if(isVerkaeufer) return "Koks Verkäufer";
+      if(isRoute) return "Koksroute";
+      return "Koks";
+    }
+    if(hasLsd){
+      if(isRoute) return "LSD Route";
+      return "LSD";
+    }
+
+    // Fallback: entferne typische Orte/Wörter
+    const remove = [
+      "paleto","cove","alamo","sea","sandy","shores","stab","city","north","sued","ost","west",
+      "great","ocean","highway","freeway","chumash","senora","gordo","drive","nahe","hoehe","nordufer","nordkueste"
+    ];
+    let parts = raw.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").split(/\s+/).filter(Boolean);
+    parts = parts.filter(p => !remove.includes(normKey(p)));
+    let out = parts.join(" ").trim();
+    return out || raw;
+  }
+
   function categoryFromName(name){
     const n = normKey(name);
     if (n.includes("weed")) return "Weed";
     if (n.includes("meth")) return "Meth";
     if (n.includes("koks") || n.includes("kokain") || n.includes("coke")) return "Koks";
     if (n.includes("lsd")) return "LSD";
-    if (n.includes("waffen")) return "Waffen";
+    if (n.includes("waffen") || n.includes("waffenteile") || n.includes("waffenhersteller")) return "Waffen";
     if (n.includes("schwarzmarkt")) return "Schwarzmarkt";
-    return null; // ✅ kein Sonstiges mehr
+    return null; // kein Sonstiges
   }
+
   function inferOwnerRepo(){
     const host = window.location.hostname.toLowerCase();
     const path = window.location.pathname.replace(/^\/+/, "").split("/").filter(Boolean);
@@ -396,7 +467,7 @@
     return { owner: "Firat0095", repo: "Sheriff--Routen" };
   }
 
-  // ===== Counter =====
+  // Counter
   function computeCounts(){
     let total = 0, done = 0;
     const perGroup = {};
@@ -414,7 +485,7 @@
     overallPill.className = "pill " + (total>0 && done===total ? "ok" : "");
   }
 
-  // ===== Lightbox =====
+  // Lightbox
   function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
   function fitZoomLimited(){
     const rect = lbStage.getBoundingClientRect();
@@ -444,10 +515,10 @@
   lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
   document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
 
-  // ===== Viewer =====
+  // Viewer
   function renderViewer(item){
     activeItem = item;
-    elTitle.textContent = item.name;
+    elTitle.textContent = item.displayName;
     elSub.textContent = item.group;
 
     const stormed = isStormed(item.file);
@@ -493,11 +564,9 @@
     const img = document.createElement("img");
     img.className = "preview";
     img.src = item.file;
-    img.alt = item.name;
-    img.onclick = ()=> openLightbox(item.file, item.name);
-    img.onerror = ()=> {
-      wrap.innerHTML = `<div class="hint">❌ Bild lädt nicht: <b>${item.file}</b></div>`;
-    };
+    img.alt = item.displayName;
+    img.onclick = ()=> openLightbox(item.file, item.displayName);
+    img.onerror = ()=> { wrap.innerHTML = `<div class="hint">❌ Bild lädt nicht: <b>${item.file}</b></div>`; };
 
     wrap.appendChild(img);
 
@@ -505,7 +574,7 @@
     elContent.appendChild(wrap);
   }
 
-  // ===== Sidebar =====
+  // Sidebar
   function toggleGroup(g){
     if(collapsed.has(g)) collapsed.delete(g);
     else collapsed.add(g);
@@ -521,9 +590,9 @@
     groupedClean.forEach(g=>{
       const local = new Set();
       const items = g.items
-        .filter(it => !filter || it.name.toLowerCase().includes(filter))
+        .filter(it => !filter || it.displayName.toLowerCase().includes(filter))
         .filter(it => {
-          const k = normKey(it.name) + "||" + it.file.toLowerCase();
+          const k = normKey(it.displayName) + "||" + it.file.toLowerCase();
           if(local.has(k)) return false;
           local.add(k);
           return true;
@@ -540,7 +609,9 @@
       const cg = counts.perGroup[g.group] || {done:0,total:items.length};
       const pill = `<span class="pill ${cg.total>0 && cg.done===cg.total ? "ok":""}">${cg.done}/${cg.total}</span>`;
 
-      header.innerHTML = `<div class="left"><span>${icons[g.group]||"📍"}</span><b>${g.group}</b></div><div style="display:flex;gap:8px;align-items:center">${pill}<span class="badgeCount">${items.length}</span></div>`;
+      header.innerHTML =
+        `<div class="left"><span>${icons[g.group]||"📍"}</span><b>${g.group}</b></div>` +
+        `<div style="display:flex;gap:8px;align-items:center">${pill}<span class="badgeCount">${items.length}</span></div>`;
       header.onclick = ()=> toggleGroup(g.group);
       wrap.appendChild(header);
 
@@ -556,7 +627,7 @@
         const stormed = isStormed(it.file);
         const badge = `<span class="statusBadge ${stormed ? "ok" : ""}">${stormed ? "✅ gestürmt" : "— offen"}</span>`;
 
-        btn.innerHTML = `<span>${it.name}</span>${badge}`;
+        btn.innerHTML = `<span>${it.displayName}</span>${badge}`;
         btn.onclick = ()=> { renderViewer(it); render(elSearch.value); };
         body.appendChild(btn);
       });
@@ -586,27 +657,30 @@
       const data = await res.json();
       const files = (Array.isArray(data) ? data : [])
         .map(x => x.name)
-        .filter(n => /\.(png|jpg|jpeg|webp)$/i.test(n));
+        .filter(n => /\.(png|jpg|jpeg|webp)$/i.test(n))
+        .filter(n => n.toLowerCase() !== "profil.png"); // Profilbild nicht als Route zählen
 
       if(files.length === 0){
-        elGroups.innerHTML = `<div class="hint">Keine Bilder im Ordner <b>/images</b> gefunden.</div>`;
+        elGroups.innerHTML = `<div class="hint">Keine Route-Bilder im Ordner <b>/images</b> gefunden.</div>`;
         return;
       }
 
       const all = files
         .map(fn=>{
-          const name = niceNameFromFile(fn);
-          const group = categoryFromName(name);
-          if(!group) return null; // ✅ kein Sonstiges
-          return { group, name, file: `images/${encodeURIComponent(fn)}` };
+          const rawName = niceNameFromFile(fn);
+          const group = categoryFromName(rawName);
+          if(!group) return null;
+          const displayName = simplifyDisplayName(rawName);
+          return { group, rawName, displayName, file: `images/${encodeURIComponent(fn)}` };
         })
         .filter(Boolean);
 
+      // Dedupe (und "detail" raus)
       const seenName = new Set();
       const seenFile = new Set();
       const deduped = [];
       for(const it of all){
-        const nk = normKey(it.name);
+        const nk = normKey(it.displayName);
         const fk = it.file.toLowerCase();
         if(nk.includes("detail")) continue;
         if(seenName.has(nk) || seenFile.has(fk)) continue;
@@ -614,9 +688,10 @@
         deduped.push(it);
       }
 
+      // Gruppieren + sortieren
       const map = {};
       for(const it of deduped) (map[it.group] ||= []).push(it);
-      Object.keys(map).forEach(g => map[g].sort((a,b)=> a.name.localeCompare(b.name,"de",{sensitivity:"base"})));
+      Object.keys(map).forEach(g => map[g].sort((a,b)=> a.displayName.localeCompare(b.displayName,"de",{sensitivity:"base"})));
 
       groupedClean = order
         .filter(g => map[g]?.length)
