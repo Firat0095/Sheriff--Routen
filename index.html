@@ -1,69 +1,127 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Standorte & Routen</title>
 
 <style>
   :root{
-    --bg:#0e1014; --panel:#151a22; --border:#232a36; --text:#eaeaea; --muted:#9aa4b2;
+    --bg:#0e1014;
+    --panel:#151a22;
+    --border:#232a36;
+    --text:#eaeaea;
+    --muted:#9aa4b2;
   }
   *{box-sizing:border-box}
   body{
-    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background:var(--bg); color:var(--text);
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:var(--bg);
+    color:var(--text);
   }
 
-  /* GOLDENER, GROßER SHERIFF-STERN MIT GLOW */
+  /* SHERIFF BADGE WASSERZEICHEN (Gold + Glow) */
   body::before{
-    content:""; position:fixed; inset:0; pointer-events:none;
-    background-repeat:no-repeat; background-position:center;
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-repeat:no-repeat;
+    background-position:center;
     background-size:min(120vw, 1200px);
-    opacity:.24;
+    opacity:.22;
     filter:
-      drop-shadow(0 0 26px rgba(255,205,60,.60))
-      drop-shadow(0 0 75px rgba(255,160,0,.35));
+      drop-shadow(0 0 26px rgba(255,205,60,.55))
+      drop-shadow(0 0 80px rgba(255,150,0,.30));
     background-image:url('data:image/svg+xml;utf8,\
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">\
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">\
-<stop offset="0" stop-color="%23FFE59A"/><stop offset="0.55" stop-color="%23FFBF3D"/><stop offset="1" stop-color="%23B87810"/>\
-</linearGradient></defs>\
+<defs>\
+  <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">\
+    <stop offset="0" stop-color="%23FFE59A"/><stop offset="0.55" stop-color="%23FFBF3D"/><stop offset="1" stop-color="%23B87810"/>\
+  </linearGradient>\
+</defs>\
 <g fill="none" stroke="url(%23g)" stroke-width="30">\
-<path d="M450 70l78 140 158-20-30 154 140 78-140 78 30 154-158-20-78 140-78-140-158 20 30-154-140-78 140-78-30-154 158 20z"/>\
-<circle cx="450" cy="450" r="230"/>\
-</g></svg>');
+  <path d="M450 70l78 140 158-20-30 154 140 78-140 78 30 154-158-20-78 140-78-140-158 20 30-154-140-78 140-78-30-154 158 20z"/>\
+  <circle cx="450" cy="450" r="230"/>\
+</g>\
+<g fill="url(%23g)" opacity="0.95">\
+  <rect x="250" y="395" width="400" height="110" rx="55" />\
+</g>\
+<g font-family="Arial" font-weight="800" font-size="78" fill="%23110f0c" opacity="0.9">\
+  <text x="450" y="472" text-anchor="middle" letter-spacing="6">SHERIFF</text>\
+</g>\
+</svg>');
   }
 
-  .app{display:grid; grid-template-columns:360px 1fr; height:100vh;}
+  /* SIGNATUR / CREDIT */
+  .credit{
+    position:fixed;
+    right:14px;
+    bottom:12px;
+    z-index:5;
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background:rgba(15,18,24,.55);
+    backdrop-filter: blur(6px);
+    color:rgba(255,255,255,.85);
+    font-size:12px;
+    user-select:none;
+  }
+  .credit b{font-weight:800;}
+
+  .app{
+    display:grid;
+    grid-template-columns:360px 1fr;
+    height:100vh;
+    position:relative;
+    z-index:1;
+  }
   .sidebar{
     background:rgba(21,26,34,.92);
     backdrop-filter: blur(6px);
     border-right:1px solid var(--border);
-    padding:14px; overflow:auto;
+    padding:14px;
+    overflow:auto;
   }
   .main{padding:14px; overflow:auto;}
 
   .brand{display:flex; align-items:center; gap:10px; margin:0 0 10px;}
   .brand .mark{
-    width:34px; height:34px; border-radius:10px;
+    width:34px; height:34px;
+    border-radius:10px;
     border:1px solid var(--border);
     display:grid; place-items:center;
     background:#0f131b;
   }
   .brand h1{font-size:16px; margin:0;}
-  .ver{color:var(--muted); font-size:11px; margin-left:auto;}
 
   .search{
-    width:100%; padding:10px 12px; border-radius:10px;
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
     border:1px solid var(--border);
-    background:#0f131b; color:var(--text); outline:none;
+    background:#0f131b;
+    color:var(--text);
+    outline:none;
   }
 
-  .group{margin-top:12px; border:1px solid var(--border); border-radius:14px; overflow:hidden; background:#0f131b;}
+  .group{
+    margin-top:12px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+    background:#0f131b;
+  }
   .groupHeader{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    padding:10px 12px; cursor:pointer; user-select:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    cursor:pointer;
+    user-select:none;
     background:#101522;
   }
   .groupHeader .left{display:flex; align-items:center; gap:8px;}
@@ -72,11 +130,16 @@
 
   .groupBody{padding:10px; display:flex; flex-direction:column; gap:8px;}
   .item{
-    padding:10px 12px; border-radius:12px;
+    padding:10px 12px;
+    border-radius:12px;
     border:1px solid var(--border);
     background:#0b0f17;
-    cursor:pointer; user-select:none;
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    cursor:pointer;
+    user-select:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
   }
   .item:hover{filter:brightness(1.08);}
   .item small{color:var(--muted);}
@@ -88,14 +151,17 @@
     border-radius:16px;
     padding:14px;
     min-height:calc(100vh - 28px);
-    display:flex; flex-direction:column; gap:10px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
   }
 
-  /* KEIN TITEL ÜBER DEM BILD */
+  /* Kein Titel über dem Bild -> damit nichts doppelt ist */
   .title{display:none;}
 
   img.preview{
-    max-width:100%; height:auto;
+    max-width:100%;
+    height:auto;
     border-radius:14px;
     border:1px solid var(--border);
     background:#0b0e13;
@@ -110,25 +176,48 @@
     border-radius:14px;
   }
 
-  /* Lightbox: nie übergroß beim Öffnen */
-  .lightbox{position:fixed; inset:0; background:rgba(0,0,0,.82); display:none; z-index:9999;}
+  /* Lightbox */
+  .lightbox{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.82);
+    display:none;
+    z-index:9999;
+  }
   .lightbox.open{display:block;}
   .lightbox .topbar{
-    position:fixed; top:10px; left:10px; right:10px;
-    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    position:fixed;
+    top:10px; left:10px; right:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
     z-index:10000;
   }
   .lightbox .btn{
     background:rgba(21,26,34,.92);
     border:1px solid rgba(255,255,255,.12);
-    color:white; padding:8px 10px; border-radius:12px;
-    cursor:pointer; font-size:12px; user-select:none;
+    color:white;
+    padding:8px 10px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:12px;
+    user-select:none;
   }
-  .lightbox .stage{position:absolute; inset:0; overflow:auto; padding:70px 24px 24px;}
-  .lightbox .stageInner{width:max-content; height:max-content; margin:auto;}
+  .lightbox .stage{
+    position:absolute; inset:0;
+    overflow:auto;
+    padding:70px 24px 24px;
+  }
+  .lightbox .stageInner{
+    width:max-content;
+    height:max-content;
+    margin:auto;
+  }
   .lightbox img{
-    display:block; transform-origin: top left;
-    border-radius:16px; border:1px solid rgba(255,255,255,.12);
+    display:block;
+    transform-origin: top left;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.12);
     background:#0b0e13;
   }
 
@@ -136,19 +225,21 @@
     .app{grid-template-columns:1fr;}
     .sidebar{height:45vh; border-right:none; border-bottom:1px solid var(--border);}
     .viewer{min-height:unset;}
+    .credit{right:10px; bottom:10px;}
   }
 </style>
 </head>
 
 <body>
+<div class="credit">Created by <b>Frank White</b></div>
+
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
       <div class="mark">⭐</div>
       <h1>Standorte & Routen</h1>
-      <div class="ver">vFinal-1</div>
     </div>
-    <input id="search" class="search" placeholder="Suchen…">
+    <input id="search" class="search" placeholder="Suchen…" />
     <div id="groups"></div>
   </aside>
 
@@ -173,7 +264,7 @@
   </div>
   <div class="stage" id="lbStage">
     <div class="stageInner">
-      <img id="lbImg" alt="">
+      <img id="lbImg" alt="" />
     </div>
   </div>
 </div>
@@ -184,7 +275,8 @@
     "Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"
   };
 
-  // Dateinamen: exakt wie in deinem GitHub images/ Screenshot
+  // ✅ Passe NUR diese Liste an, wenn du neue Bilder hochlädst:
+  // (Meth-Detail ist bewusst NICHT drin)
   const grouped = [
     {"group":"Weed","items":[
       {"name":"Weed Route","file":"images/Weed_Route.png"},
@@ -204,7 +296,6 @@
       {"name":"Sandy Shores LSD Spot","file":"images/Sandy_Shores_LSD_Spot.png"}
     ]},
     {"group":"Waffen","items":[
-      // Waffenteile wird nur angezeigt, wenn Datei wirklich existiert:
       {"name":"Alamo Sea – Nordufer Waffenteile","file":"images/Alamo_Sea_Nordufer_Waffenteile.png"},
       {"name":"Waffenhersteller","file":"images/Waffenhersteller.png"}
     ]},
@@ -213,21 +304,27 @@
     ]}
   ];
 
+  // HARD DEDUPE: Doppelte Namen ODER gleiche Datei fliegen raus (global + pro Gruppe)
   function normKey(s){
     return (s||"").toLowerCase().trim()
       .replaceAll("ä","ae").replaceAll("ö","oe").replaceAll("ü","ue").replaceAll("ß","ss")
       .replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
   }
-
-  // GLOBAL DEDUPE + später beim Render nochmal Hard-Dedupe
-  const seenNames = new Set();
-  const seenFiles = new Set();
-  const groupedClean = grouped.map(g => {
-    const items = (g.items||[]).filter(it => {
+  const seenGlobal = new Set();
+  const groupedClean = grouped.map(g=>{
+    const localSeen = new Set();
+    const items = (g.items||[]).filter(it=>{
       const nk = normKey(it.name);
-      const fk = (it.file||"").trim().toLowerCase();
-      if (seenNames.has(nk) || seenFiles.has(fk)) return false;
-      seenNames.add(nk); if (fk) seenFiles.add(fk);
+      const fk = (it.file||"").toLowerCase().trim();
+      const keyA = "n:" + nk;
+      const keyB = "f:" + fk;
+      const keyLocal = nk + "||" + fk;
+
+      if(localSeen.has(keyLocal)) return false;
+      localSeen.add(keyLocal);
+
+      if(seenGlobal.has(keyA) || seenGlobal.has(keyB)) return false;
+      seenGlobal.add(keyA); seenGlobal.add(keyB);
       return true;
     });
     return {...g, items};
@@ -251,67 +348,62 @@
 
   function applyZoom(){ lbImg.style.transform = `scale(${zoom})`; }
 
-  // Fit, aber begrenzt: immer komplett sichtbar und nicht übertrieben
+  // Fit mit Limit: nie über 100% beim Öffnen und immer komplett sichtbar
   function fitZoomLimited(){
     const rect = lbStage.getBoundingClientRect();
     const iw = lbImg.naturalWidth, ih = lbImg.naturalHeight;
-    if(!iw || !ih){ zoom = 0.9; applyZoom(); return; }
+    if(!iw || !ih){ zoom = 0.95; applyZoom(); return; }
     const scale = Math.min((rect.width * 0.92) / iw, (rect.height * 0.92) / ih);
-    zoom = Math.min(1.0, scale);    // nie über 100% beim Öffnen
+    zoom = Math.min(1.0, scale);
     applyZoom();
-    lbStage.scrollLeft = 0; lbStage.scrollTop = 0;
+    lbStage.scrollLeft = 0;
+    lbStage.scrollTop  = 0;
   }
 
   function openLightbox(src, title){
     lbImg.src = src;
+    lbImg.alt = title;
     lbTitle.textContent = title;
     lightbox.classList.add("open");
-    zoom = 0.95;                    // leicht größer, aber safe
+    zoom = 0.95;
     lbImg.onload = () => fitZoomLimited();
   }
-  function closeLightbox(){ lightbox.classList.remove("open"); lbImg.src=""; }
-  function stepZoom(d){
-    zoom = Math.max(0.25, Math.min(1.6, zoom + d)); // begrenzt, damit nie „nur Hälfte“
+  function closeLightbox(){
+    lightbox.classList.remove("open");
+    lbImg.src = "";
+  }
+  function stepZoom(delta){
+    zoom = Math.max(0.25, Math.min(1.6, zoom + delta)); // nicht zu groß
     applyZoom();
   }
 
-  zoomInBtn.onclick  = ()=> stepZoom(0.10);
+  zoomInBtn.onclick = ()=> stepZoom(0.10);
   zoomOutBtn.onclick = ()=> stepZoom(-0.10);
   zoomResetBtn.onclick = ()=> fitZoomLimited();
   lbClose.onclick = closeLightbox;
-  lightbox.addEventListener("click", e=>{ if(e.target===lightbox) closeLightbox(); });
-  document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
 
-  // Prüft ob Bild existiert (wichtig für Waffenteile)
-  function imageExists(path){
-    return new Promise(resolve=>{
-      const t = new Image();
-      t.onload = ()=> resolve(true);
-      t.onerror = ()=> resolve(false);
-      t.src = path + (path.includes("?") ? "&" : "?") + "v=" + Date.now();
-    });
-  }
+  lightbox.addEventListener("click", e=>{ if(e.target === lightbox) closeLightbox(); });
+  document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeLightbox(); });
 
-  async function openRoute(groupName, idx){
+  // ✅ WICHTIG: Slots werden NICHT gelöscht. Wenn Bild fehlt -> Meldung.
+  function openRoute(groupName, idx){
     const g = groupedClean.find(x=>x.group===groupName);
     const r = g.items[idx];
-
-    const ok = await imageExists(r.file);
-    if(!ok){
-      // Wenn eine Datei fehlt: Eintrag „verschwindet“ automatisch + Meldung
-      g.items.splice(idx,1);
-      render(elSearch.value);
-      elContent.innerHTML = `<div class="hint">❌ Datei fehlt in /images/: <b>${r.file}</b><br>
-      Lade das Bild in GitHub → <b>images/</b> hoch oder benenne es exakt so.</div>`;
-      return;
-    }
 
     elContent.innerHTML = "";
     const img = document.createElement("img");
     img.className = "preview";
     img.src = r.file;
     img.alt = r.name;
+    img.title = "Klicken zum Vergrößern";
     img.onclick = ()=> openLightbox(r.file, r.name);
+
+    img.onerror = ()=>{
+      elContent.innerHTML =
+        `<div class="hint">❌ Bild konnte nicht geladen werden:<br><b>${r.file}</b><br><br>
+        Prüfe: Liegt die Datei wirklich im Ordner <b>images/</b> und heißt exakt so?</div>`;
+    };
+
     elContent.appendChild(img);
   }
 
@@ -326,38 +418,29 @@
     elGroups.innerHTML = "";
 
     groupedClean.forEach(g=>{
-      // HARD-DEDUPED Render (zur Sicherheit)
-      const seenLocal = new Set();
-      const items = (g.items||[])
-        .filter(it=>!filter || it.name.toLowerCase().includes(filter))
-        .filter(it=>{
-          const k = normKey(it.name) + "||" + (it.file||"").toLowerCase().trim();
-          if(seenLocal.has(k)) return false;
-          seenLocal.add(k);
-          return true;
-        });
-
-      if(filter && items.length===0) return;
+      const items = (g.items||[]).filter(it=>!filter || it.name.toLowerCase().includes(filter));
+      if(filter && items.length === 0) return;
 
       const wrap = document.createElement("div");
-      wrap.className="group";
+      wrap.className = "group";
 
       const header = document.createElement("div");
-      header.className="groupHeader";
-      header.innerHTML = `<div class="left"><span>${icons[g.group]||"📍"}</span><b>${g.group}</b></div><span class="badgeCount">${items.length}</span>`;
+      header.className = "groupHeader";
+      header.innerHTML =
+        `<div class="left"><span>${icons[g.group] || "📍"}</span><b>${g.group}</b></div>
+         <span class="badgeCount">${items.length}</span>`;
       header.onclick = ()=> toggleGroup(g.group);
       wrap.appendChild(header);
 
       const body = document.createElement("div");
-      body.className="groupBody";
+      body.className = "groupBody";
       body.style.display = collapsed.has(g.group) ? "none" : "flex";
 
-      items.forEach((r)=>{
-        const idx = g.items.findIndex(x=>x.file===r.file && x.name===r.name);
+      items.forEach((r, i)=>{
         const btn = document.createElement("div");
         btn.className = "item";
         btn.innerHTML = `<span>${r.name}</span><small>▶</small>`;
-        btn.onclick = ()=> openRoute(g.group, idx);
+        btn.onclick = ()=> openRoute(g.group, i);
         body.appendChild(btn);
       });
 
@@ -367,13 +450,13 @@
 
     if(!elGroups.children.length){
       const empty = document.createElement("div");
-      empty.className="hint";
-      empty.textContent="Keine Treffer.";
+      empty.className = "hint";
+      empty.textContent = "Keine Treffer.";
       elGroups.appendChild(empty);
     }
   }
 
-  elSearch.addEventListener("input", ()=>render(elSearch.value));
+  elSearch.addEventListener("input", ()=> render(elSearch.value));
   render();
 </script>
 </body>
