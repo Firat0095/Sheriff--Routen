@@ -13,6 +13,7 @@
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);}
 
+  /* GOLDENER, GROßER SHERIFF-STERN MIT GLOW */
   body::before{
     content:""; position:fixed; inset:0; pointer-events:none;
     background-repeat:no-repeat; background-position:center;
@@ -102,7 +103,6 @@
   }
   .groupHeader .left{display:flex;align-items:center;gap:8px;}
   .groupHeader b{font-size:13px;}
-
   .badgeCount{color:var(--muted);font-size:12px;}
 
   .groupBody{padding:10px;display:flex;flex-direction:column;gap:8px;}
@@ -121,11 +121,13 @@
 
   /* Viewer Mitte */
   .viewerInner{ padding:14px; display:flex; flex-direction:column; gap:12px; min-height:0; }
+
+  /* ✅ OHNE schwarzen Untergrund */
   .previewWrap{
-    border:1px solid var(--border);
-    border-radius:14px;
-    background:#0b0e13;
-    padding:10px;
+    border:none;
+    border-radius:0;
+    background:transparent;
+    padding:0;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -138,7 +140,7 @@
     max-height:calc(100vh - 220px);
     width:auto;height:auto;
     object-fit:contain;
-    border-radius:12px;
+    border-radius:14px;
     cursor:zoom-in;
     display:block;
   }
@@ -229,7 +231,6 @@
     </div>
 
     <div class="scroll">
-      <!-- Gesamt Counter -->
       <div class="summary">
         <b>Gesamt</b>
         <span class="pill" id="overallPill">—</span>
@@ -273,8 +274,7 @@
         <div class="infoTitle" data-toggle="info1">Allgemein <span class="subRight">▼</span></div>
         <div class="infoBody" id="info1">
           <ul>
-            <li>Nur IC / Ingame nutzen.</li>
-            <li>Keine Weitergabe außerhalb der Fraktion.</li>
+            <li><b>Jede Route darf nur 1× pro Tag gestürmt werden.</b></li>
           </ul>
         </div>
       </div>
@@ -334,8 +334,8 @@
 </div>
 
 <script>
-  const icons = {"Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪","Waffen":"🔫","Schwarzmarkt":"🕸️","Sonstiges":"📍"};
-  const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt","Sonstiges"];
+  const icons = {"Weed":"🌿","Meth":"💉","Koks":"❄️","LSD":"🧪","Waffen":"🔫","Schwarzmarkt":"🕸️"};
+  const order = ["Weed","Meth","Koks","LSD","Waffen","Schwarzmarkt"]; // ✅ Sonstiges weg
 
   const elGroups = document.getElementById("groups");
   const elSearch = document.getElementById("search");
@@ -359,7 +359,7 @@
   let zoom = 1;
 
   // ===== Status Speicherung =====
-  const STORAGE_KEY = "sd_raids_status_v2";
+  const STORAGE_KEY = "sd_raids_status_v3";
   function loadStatus(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}"); }catch{ return {}; } }
   function saveStatus(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
   function isStormed(file){ const s=loadStatus(); return !!s[file]; }
@@ -383,7 +383,7 @@
     if (n.includes("lsd")) return "LSD";
     if (n.includes("waffen")) return "Waffen";
     if (n.includes("schwarzmarkt")) return "Schwarzmarkt";
-    return "Sonstiges";
+    return null; // ✅ kein Sonstiges mehr
   }
   function inferOwnerRepo(){
     const host = window.location.hostname.toLowerCase();
@@ -408,7 +408,6 @@
     }
     return { total, done, perGroup };
   }
-
   function updateSummaryUI(){
     const { total, done } = computeCounts();
     overallPill.textContent = `${done} / ${total} gestürmt`;
@@ -594,11 +593,14 @@
         return;
       }
 
-      const all = files.map(fn=>{
-        const name = niceNameFromFile(fn);
-        const group = categoryFromName(name);
-        return { group, name, file: `images/${encodeURIComponent(fn)}` };
-      });
+      const all = files
+        .map(fn=>{
+          const name = niceNameFromFile(fn);
+          const group = categoryFromName(name);
+          if(!group) return null; // ✅ kein Sonstiges
+          return { group, name, file: `images/${encodeURIComponent(fn)}` };
+        })
+        .filter(Boolean);
 
       const seenName = new Set();
       const seenFile = new Set();
